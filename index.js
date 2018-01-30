@@ -123,12 +123,22 @@ app.get('/login', function (req, res) {
     res.sendFile(__dirname + "/public/views/login.html");
 });
 
+app.get('/logout', function (req,res) {
+    res.clearCookie("token");
+    res.redirect('../')
+});
+
 app.get('/dashboard', auth.isAuthorized, function (req, res) {
     res.send("Hello, " + res.locals.name + "! This is your dashboard. To be completed...");
 });
 
 app.get('/pug/navbar', function (req, res) {
-    res.send(pug.renderFile(__dirname + "/pug/navbar.pug", {}));
+    var data = {};
+    auth.checkAuthorized(req, function(loggedin) {
+        console.log(loggedin);
+        data["loggedin"] = loggedin;
+        res.send(pug.renderFile(__dirname + "/pug/navbar.pug", data));
+    });
 });
 
 app.use(function (req, res) {

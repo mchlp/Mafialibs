@@ -11,12 +11,25 @@ module.exports.isAuthorized = function(req, res, next) {
             if (err) {
                 res.status(403).json({message: "Unauthorized."});
             } else {
-                console.log(dec);
                 res.locals.id = dec["id"];
                 res.locals.name = dec["name"];
                 next();
             }
         })
+    } else {
+        res.status(403).json({message: "Unauthorized."});
+    }
+};
+
+module.exports.checkAuthorized = function(req, callback) {
+    var token =  req.cookies["token"];
+    if (token) {
+        jwt.verify(token, TOKEN_SECRET, function(err) {
+            console.log("TOKEN ERROR: ", err == null);
+            callback(err == null);
+        });
+    } else {
+        callback(false);
     }
 };
 

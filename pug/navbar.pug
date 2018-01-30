@@ -10,4 +10,7 @@ nav.navbar.navbar-expand-lg.navbar-dark.bg-custom
                 a.nav-link.disabled(href='../dashboard') Dashboard
         ul.navbar-nav
             li.nav-item
-                a.nav-link(href='../login') Log In
+                if loggedin
+                    a.nav-link(href='../logout') Log Out
+                else
+                    a.nav-link(href='../login') Log In
