@@ -21,8 +21,17 @@ var mongodb = require('mongodb');
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(bodyParser.urlencoded({extended: true}));
+
+app.use(session({
+    cookieName: 'session',
+    secret: 'JM1qisCavgdTx8pVXzlf',
+    duration: 30 * 60 * 1000,
+    activeDuration: 5 * 60 * 1000
+}));
+
 app.get('/', function (req, res) {
-    res.sendFile(__dirname + "/public/home.html")
+    res.sendFile(__dirname + "/public/views/home.html")
 });
 
 app.get('/list', function (req, res) {
@@ -54,16 +63,7 @@ app.get('/list', function (req, res) {
     });
 });
 
-app.use(bodyParser.urlencoded({extended: true}));
-
-app.use(session({
-    cookieName: 'session',
-    secret: 'JM1qisCavgdTx8pVXzlf',
-    duration: 30 * 60 * 1000,
-    activeDuration: 5 * 60 * 1000,
-}));
-
-app.post('/login', function (req, res) {
+app.post('/loginVerify', function (req, res) {
     client.verifyIdToken({
         idToken: req.body.token,
         audience: CLIENT_ID
@@ -71,11 +71,23 @@ app.post('/login', function (req, res) {
         var payload = login.getPayload();
         var userid = payload['sub'];
         if (payload) {
-            res.send({status: "good"});
+            res.status(200).send({result: 'redirect', url:'../dashboard'});
         } else {
             res.send({status: "bad"});
         }
     });
+});
+
+app.get('/about', function(req, res) {
+   res.sendFile(__dirname + "/public/views/about.html");
+});
+
+app.get('/login', function(req, res) {
+    res.sendFile(__dirname + "/public/views/login.html");
+});
+
+app.get('/dashboard', function(req, res) {
+    res.send("Dashboard.");
 });
 
 app.use(function (req, res) {

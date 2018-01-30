@@ -4,11 +4,11 @@ function onSuccess(googleUser) {
     console.log(token);
     $.ajax({
         type: "POST",
-        url: "../login",
+        url: "../loginVerify",
         data: {"token": token},
-        success: function(data) {
-            if (data["status"] === "good") {
-                window.location.replace("../views/dashboard.html");
+        success: function(res) {
+            if (res.result === 'redirect') {
+                window.location.replace(res.url);
             }
         },
         dataType: "json"
