@@ -7,8 +7,9 @@ function onSuccess(googleUser) {
         url: "../loginVerify/",
         data: {"token": token},
         success: function(res) {
-		console.log(res);
             if (res.result === 'redirect') {
+                console.log(res.token);
+                document.cookie = "token="+res.token+"; path=/;";
                 window.location.replace(res.url);
             }
         },

@@ -10,24 +10,28 @@ var app = express();
 var http = require('http').Server(app);
 var path = require('path');
 var io = require('socket.io')(http);
+var session = require('cookie-session');
 var format = require('util').format;
 var bodyParser = require('body-parser');
-var session = require('client-sessions');
-var auth = new require('google-auth-library');
-var client = new auth.OAuth2Client(CLIENT_ID, '', '');
+var googleAuth = new require('google-auth-library');
+var client = new googleAuth.OAuth2Client(CLIENT_ID, '', '');
+var cookieParser = require('cookie-parser');
+var auth = require("./server/auth.js");
 
-var mongoose = require("mongoose");
 var mongodb = require('mongodb');
+var MongoClient = mongodb.MongoClient;
+var url = format("mongodb://%s:%s@%s:%s/%s", DB_USERNAME, DB_PASSWORD, DB_ADDRESS, DB_PORT, DB_DATABASE);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use(bodyParser.urlencoded({extended: true}));
 
+app.use(cookieParser());
+
 app.use(session({
-    cookieName: 'session',
-    secret: 'JM1qisCavgdTx8pVXzlf',
-    duration: 30 * 60 * 1000,
-    activeDuration: 5 * 60 * 1000
+    name: 'session',
+    secret: 'asdfak43*&^%%sdj@',
+    maxAge: 0.5 * 60 * 60 * 1000
 }));
 
 app.get('/', function (req, res) {
@@ -35,16 +39,13 @@ app.get('/', function (req, res) {
 });
 
 app.get('/list', function (req, res) {
-    var MongoClient = mongodb.MongoClient;
-    var url = format("mongodb://%s:%s@%s:%s/%s", DB_USERNAME, DB_PASSWORD, DB_ADDRESS, DB_PORT, DB_DATABASE);
     MongoClient.connect(url, function (err, db) {
         if (err) {
             throw err;
         } else {
-            console.log("Connection established.");
             var dbo = db.db('mafialibs-db');
 
-            var collection = dbo.collection('students');
+            var collection = dbo.collection('users');
 
             collection.find({}).toArray(function (err, result) {
                 if (err) {
@@ -55,9 +56,6 @@ app.get('/list', function (req, res) {
                     res.send("No document found");
                 }
             });
-
-            collection.insertOne({name: "John Brown", grade: 9, gpa: 2.5});
-
             db.close();
         }
     });
@@ -72,10 +70,38 @@ app.post('/loginVerify', function (req, res) {
         idToken: req.body.token,
         audience: CLIENT_ID
     }, function (e, login) {
-        var payload = login.getPayload();
-        var userid = payload['sub'];
-        if (payload) {
-            res.status(200).send({result: 'redirect', url:'../dashboard'});
+        var userData = login.getPayload();
+        if (userData) {
+            MongoClient.connect(url, function (err, db) {
+                if (err) {
+                    throw err;
+                } else {
+                    var userID = userData["sub"];
+                    var dbo = db.db('mafialibs-db');
+                    var users = dbo.collection('users');
+                    var query = {_id: userID};
+                    var curUser = {
+                        $set: {
+                            firstName: userData["given_name"],
+                            lastName: userData["family_name"],
+                            fullName: userData["name"],
+                            emailVerified: userData["email_verified"],
+                            email: userData["email"],
+                            pic: userData["picture"]
+                        },
+                        $currentDate: {
+                            lastLogin: true
+                        }
+
+                    };
+                    users.updateOne(query, curUser, {upsert: true}, function (err, res) {
+                        if (err) throw err;
+                    });
+                    db.close();
+                    var userToken = auth.getToken(userData);
+                    res.status(200).send({result: 'redirect', token: userToken, url:'../dashboard'});
+                }
+            });
         } else {
             res.status(200).send({result: 'redirect', url:'../login'});
         }
@@ -94,8 +120,8 @@ app.get('/login', function(req, res) {
     res.sendFile(__dirname + "/public/views/login.html");
 });
 
-app.get('/dashboard', function(req, res) {
-    res.send("Dashboard.");
+app.get('/dashboard', auth.isAuthorized, function(req, res) {
+    res.send("Hello, " + res.locals.name + "! This is your dashboard. To be completed...");
 });
 
 app.use(function (req, res) {
@@ -104,4 +130,4 @@ app.use(function (req, res) {
 
 http.listen(3000, function () {
     console.log("listenting on *:3000");
-})
+});
