@@ -1,0 +1,20 @@
+{
+  "name": "mafialibs",
+  "version": "1.0.0",
+  "description": "A combination of the game mafia and madlibs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Michael Pu",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "latest",
+    "client-sessions": "^0.8.0",
+    "express": "^4.16.2",
+    "google-auth-library": "^1.1.0",
+    "mongodb": "^3.0.1",
+    "mongoose": "latest",
+    "socket.io": "^2.0.4"
+  }
+}
