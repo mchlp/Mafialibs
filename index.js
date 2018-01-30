@@ -31,7 +31,7 @@ app.use(session({
 }));
 
 app.get('/', function (req, res) {
-    res.sendFile(__dirname + "/public/views/home.html")
+    res.redirect("/home");
 });
 
 app.get('/list', function (req, res) {
@@ -76,6 +76,10 @@ app.post('/loginVerify', function (req, res) {
             res.send({status: "bad"});
         }
     });
+});
+
+app.get('/home', function(req, res) {
+    res.sendFile(__dirname + "/public/views/home.html");
 });
 
 app.get('/about', function(req, res) {
