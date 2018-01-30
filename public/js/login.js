@@ -8,7 +8,7 @@ function onSuccess(googleUser) {
         data: {"token": token},
         success: function(data) {
             if (data["status"] === "good") {
-                window.location.replace("../views/games.html");
+                window.location.replace("../views/dashboard.html");
             }
         },
         dataType: "json"
