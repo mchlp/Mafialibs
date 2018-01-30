@@ -9,6 +9,7 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var path = require('path');
+var pug = require('pug');
 var io = require('socket.io')(http);
 var session = require('cookie-session');
 var format = require('util').format;
@@ -124,6 +125,10 @@ app.get('/login', function (req, res) {
 
 app.get('/dashboard', auth.isAuthorized, function (req, res) {
     res.send("Hello, " + res.locals.name + "! This is your dashboard. To be completed...");
+});
+
+app.get('/pug/navbar', function (req, res) {
+    res.send(pug.renderFile(__dirname + "/pug/navbar.pug", {}));
 });
 
 app.use(function (req, res) {
