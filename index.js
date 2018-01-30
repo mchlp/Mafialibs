@@ -17,10 +17,32 @@ var googleAuth = new require('google-auth-library');
 var client = new googleAuth.OAuth2Client(CLIENT_ID, '', '');
 var cookieParser = require('cookie-parser');
 var auth = require("./server/auth.js");
+var schema = require("./server/schema");
 
-var mongodb = require('mongodb');
-var MongoClient = mongodb.MongoClient;
+var mongoose = require('mongoose');
 var url = format("mongodb://%s:%s@%s:%s/%s", DB_USERNAME, DB_PASSWORD, DB_ADDRESS, DB_PORT, DB_DATABASE);
+
+var connectedToDB = false;
+mongoose.connect(url);
+
+mongoose.connection.on('connected', function () {
+    connectedToDB = true;
+    console.log("CONNECTED");
+});
+
+mongoose.connection.on('error', function (err) {
+    connectedToDB = false;
+});
+
+mongoose.connection.on('disconnected', function () {
+    connectedToDB = false;
+});
+
+process.on('SIGINT', function () {
+    mongoose.connection.close(function () {
+        process.exit(0);
+    });
+});
 
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -39,30 +61,19 @@ app.get('/', function (req, res) {
 });
 
 app.get('/list', function (req, res) {
-    MongoClient.connect(url, function (err, db) {
+    schema.User.find({}, function (err, result) {
         if (err) {
-            throw err;
+            throw err
+        } else if (result.length) {
+            res.send(result);
         } else {
-            var dbo = db.db('mafialibs-db');
-
-            var collection = dbo.collection('users');
-
-            collection.find({}).toArray(function (err, result) {
-                if (err) {
-                    throw err
-                } else if (result.length) {
-                    res.send(result);
-                } else {
-                    res.send("No document found");
-                }
-            });
-            db.close();
+            res.send("No document found");
         }
     });
 });
 
-app.get('/loginVerify', function(req, res) {
-	res.send("verify login");
+app.get('/loginVerify', function (req, res) {
+    res.send("verify login");
 });
 
 app.post('/loginVerify', function (req, res) {
@@ -72,55 +83,46 @@ app.post('/loginVerify', function (req, res) {
     }, function (e, login) {
         var userData = login.getPayload();
         if (userData) {
-            MongoClient.connect(url, function (err, db) {
-                if (err) {
-                    throw err;
-                } else {
-                    var userID = userData["sub"];
-                    var dbo = db.db('mafialibs-db');
-                    var users = dbo.collection('users');
-                    var query = {_id: userID};
-                    var curUser = {
-                        $set: {
-                            firstName: userData["given_name"],
-                            lastName: userData["family_name"],
-                            fullName: userData["name"],
-                            emailVerified: userData["email_verified"],
-                            email: userData["email"],
-                            pic: userData["picture"]
-                        },
-                        $currentDate: {
-                            lastLogin: true
-                        }
-
-                    };
-                    users.updateOne(query, curUser, {upsert: true}, function (err, res) {
-                        if (err) throw err;
-                    });
-                    db.close();
-                    var userToken = auth.getToken(userData);
-                    res.status(200).send({result: 'redirect', token: userToken, url:'../dashboard'});
-                }
-            });
-        } else {
-            res.status(200).send({result: 'redirect', url:'../login'});
+            var userID = userData["sub"];
+            var query = {_id: userID};
+            var curUser = {
+                _id: userData["sub"],
+                firstName: userData["given_name"],
+                lastName: userData["family_name"],
+                fullName: userData["name"],
+                emailVerified: userData["email_verified"],
+                email: userData["email"],
+                picURL: userData["picture"],
+                lastLogin: Date.now().toString()
+            };
+            schema.User.findOneAndUpdate(query, curUser, {
+                    upsert: true
+                },
+                function (err, doc) {
+                    if (err) throw err;
+                });
+            var userToken = auth.getToken(userData);
+            res.status(200).send({result: 'redirect', token: userToken, url: '../dashboard'});
+        }
+        else {
+            res.status(200).send({result: 'redirect', url: '../login'});
         }
     });
 });
 
-app.get('/home', function(req, res) {
+app.get('/home', function (req, res) {
     res.sendFile(__dirname + "/public/views/home.html");
 });
 
-app.get('/about', function(req, res) {
-   res.sendFile(__dirname + "/public/views/about.html");
+app.get('/about', function (req, res) {
+    res.sendFile(__dirname + "/public/views/about.html");
 });
 
-app.get('/login', function(req, res) {
+app.get('/login', function (req, res) {
     res.sendFile(__dirname + "/public/views/login.html");
 });
 
-app.get('/dashboard', auth.isAuthorized, function(req, res) {
+app.get('/dashboard', auth.isAuthorized, function (req, res) {
     res.send("Hello, " + res.locals.name + "! This is your dashboard. To be completed...");
 });
 

@@ -10,7 +10,9 @@ function onSuccess(googleUser) {
             if (res.result === 'redirect') {
                 console.log(res.token);
                 document.cookie = "token="+res.token+"; path=/;";
-                window.location.replace(res.url);
+                setTimeout(function() {
+                    window.location.replace(res.url)
+                }, 1000);
             }
         },
         dataType: "json"
