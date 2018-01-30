@@ -4,7 +4,7 @@ function onSuccess(googleUser) {
     console.log(token);
     $.ajax({
         type: "POST",
-        url: "../loginVerify",
+        url: "./login/loginVerify",
         data: {"token": token},
         success: function(res) {
             if (res.result === 'redirect') {

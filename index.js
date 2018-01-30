@@ -63,7 +63,7 @@ app.get('/list', function (req, res) {
     });
 });
 
-app.post('/loginVerify', function (req, res) {
+app.post('/login/loginVerify', function (req, res) {
     client.verifyIdToken({
         idToken: req.body.token,
         audience: CLIENT_ID
