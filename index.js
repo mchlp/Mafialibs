@@ -63,7 +63,11 @@ app.get('/list', function (req, res) {
     });
 });
 
-app.post('/login/loginVerify', function (req, res) {
+app.get('/loginVerify', function(req, res) {
+	res.send("verify login");
+});
+
+app.post('/loginVerify', function (req, res) {
     client.verifyIdToken({
         idToken: req.body.token,
         audience: CLIENT_ID
@@ -73,7 +77,7 @@ app.post('/login/loginVerify', function (req, res) {
         if (payload) {
             res.status(200).send({result: 'redirect', url:'../dashboard'});
         } else {
-            res.send({status: "bad"});
+            res.status(200).send({result: 'redirect', url:'../login'});
         }
     });
 });
