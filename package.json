@@ -19,6 +19,7 @@
     "server": "^1.1.0-alpha.1",
     "socket.io": "^2.0.4",
     "mongoose": "latest",
-    "pug": "latest"
+    "pug": "latest",
+    "handlebars": "latest"
   }
 }

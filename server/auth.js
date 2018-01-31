@@ -4,6 +4,7 @@ const TOKEN_SECRET = "tZlYtRubBS6L1U3!@K@$";
 
 var jwt = require('jsonwebtoken');
 
+// middleware function
 module.exports.isAuthorized = function(req, res, next) {
     var token =  req.cookies["token"];
     if (token) {
@@ -25,7 +26,6 @@ module.exports.checkAuthorized = function(req, callback) {
     var token =  req.cookies["token"];
     if (token) {
         jwt.verify(token, TOKEN_SECRET, function(err) {
-            console.log("TOKEN ERROR: ", err == null);
             callback(err == null);
         });
     } else {

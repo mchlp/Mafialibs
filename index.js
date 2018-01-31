@@ -9,7 +9,6 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var path = require('path');
-var pug = require('pug');
 var io = require('socket.io')(http);
 var session = require('cookie-session');
 var format = require('util').format;
@@ -17,11 +16,14 @@ var bodyParser = require('body-parser');
 var googleAuth = new require('google-auth-library');
 var client = new googleAuth.OAuth2Client(CLIENT_ID, '', '');
 var cookieParser = require('cookie-parser');
-var auth = require("./server/auth.js");
+var auth = require("./server/auth");
 var schema = require("./server/schema");
 
 var mongoose = require('mongoose');
 var url = format("mongodb://%s:%s@%s:%s/%s", DB_USERNAME, DB_PASSWORD, DB_ADDRESS, DB_PORT, DB_DATABASE);
+
+var hbsHandler = require('./server/hbsHelper');
+hbsHandler.compileTemplates();
 
 var connectedToDB = false;
 mongoose.connect(url);
@@ -58,7 +60,13 @@ app.use(session({
 }));
 
 app.get('/', function (req, res) {
-    res.redirect("./home");
+    auth.checkAuthorized(req, function (authorized) {
+        if (authorized) {
+            res.redirect("./dashboard")
+        } else {
+            res.redirect("./home");
+        }
+    });
 });
 
 app.get('/list', function (req, res) {
@@ -123,21 +131,26 @@ app.get('/login', function (req, res) {
     res.sendFile(__dirname + "/public/views/login.html");
 });
 
-app.get('/logout', function (req,res) {
+app.get('/logout', function (req, res) {
     res.clearCookie("token");
     res.redirect('../')
 });
 
 app.get('/dashboard', auth.isAuthorized, function (req, res) {
-    res.send("Hello, " + res.locals.name + "! This is your dashboard. To be completed...");
+    res.sendFile(__dirname + "/public/views/dashboard.html");
 });
 
-app.get('/pug/navbar', function (req, res) {
+app.get('/handlebars/dashboard', auth.isAuthorized, function(req, res) {
     var data = {};
-    auth.checkAuthorized(req, function(loggedin) {
-        console.log(loggedin);
+    data["name"] = res.locals.name;
+    res.send(hbsHandler.exportDashboard(data));
+});
+
+app.get('/handlebars/navbar', function (req, res) {
+    var data = {};
+    auth.checkAuthorized(req, function (loggedin) {
         data["loggedin"] = loggedin;
-        res.send(pug.renderFile(__dirname + "/pug/navbar.pug", data));
+        res.send(hbsHandler.exportNavBar(data));
     });
 });
 

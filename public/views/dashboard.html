@@ -9,10 +9,10 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-
     <script>
         $(function () {
-            $("#navbar").load("../pug/navbar");
+            $("#navbar").load("../handlebars/navbar");
+            $("#content").load('../handlebars/dashboard');
         });
     </script>
 </head>
@@ -20,11 +20,7 @@
 <div id="navbar"></div>
 
 <br/>
-<div class="container">
-    <div class="jumbotron">
-        <h3>Dashboard</h3>
-        <p>Here are the games</p>
-    </div>
+<div id="content" class="container">
 </div>
 </body>
 </html>
