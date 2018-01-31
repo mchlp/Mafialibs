@@ -16,6 +16,12 @@ var userSchema = new Schema({
     fullName: {
         type: String
     },
+    username: {
+        type: String
+    },
+    displayName: {
+        type: String
+    },
     emailVerified: {
         type: Boolean,
         required: true
@@ -30,11 +36,11 @@ var userSchema = new Schema({
     },
     lastLogin: {
         type: String,
-        default: Date.now().toString()
+        default: new Date().toISOString()
     },
     created: {
         type: String,
-        default: Date.now().toString()
+        default: new Date().toISOString()
     },
     gameCount: {
         type: Number,

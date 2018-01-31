@@ -12,7 +12,6 @@
     <script>
         $(function () {
             $("#navbar").load("../handlebars/navbar");
-            $("#content").load('../handlebars/dashboard');
         });
     </script>
 </head>
@@ -20,7 +19,12 @@
 <div id="navbar"></div>
 
 <br/>
-<div id="content" class="container">
+<div class="container">
+    <div class="jumbotron">
+        <h3>Dashboard</h3>
+        <p>Hello, {{name}}!</p>
+        <p>Here are the games</p>
+    </div>
 </div>
 </body>
 </html>

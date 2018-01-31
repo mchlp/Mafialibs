@@ -1,16 +1,13 @@
-
 function onSuccess(googleUser) {
     var token = googleUser.getAuthResponse().id_token;
-    console.log(token);
     $.ajax({
         type: "POST",
         url: "../loginVerify/",
         data: {"token": token},
-        success: function(res) {
+        success: function (res) {
             if (res.result === 'redirect') {
-                console.log(res.token);
-                document.cookie = "token="+res.token+"; path=/;";
-                setTimeout(function() {
+                document.cookie = "token=" + res.token + "; path=/;";
+                setTimeout(function () {
                     window.location.replace(res.url)
                 }, 1000);
             }

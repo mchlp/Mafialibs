@@ -98,11 +98,12 @@ app.post('/loginVerify', function (req, res) {
                 _id: userData["sub"],
                 firstName: userData["given_name"],
                 lastName: userData["family_name"],
+                displayName: userData["given_name"],
                 fullName: userData["name"],
                 emailVerified: userData["email_verified"],
                 email: userData["email"],
                 picURL: userData["picture"],
-                lastLogin: Date.now().toString()
+                lastLogin: new Date().toISOString()
             };
             schema.User.findOneAndUpdate(query, curUser, {
                     upsert: true
@@ -117,6 +118,13 @@ app.post('/loginVerify', function (req, res) {
             res.status(200).send({result: 'redirect', url: '../login'});
         }
     });
+});
+
+app.post('/displayNameVerify', function (req, res) {
+    var searchName = req.body.name;
+    schema.User.find({displayName: searchName}).limit(1).count().exec(function (err, found) {
+        res.json({taken: found > 0});
+    })
 });
 
 app.get('/home', function (req, res) {
@@ -137,20 +145,73 @@ app.get('/logout', function (req, res) {
 });
 
 app.get('/dashboard', auth.isAuthorized, function (req, res) {
-    res.sendFile(__dirname + "/public/views/dashboard.html");
-});
-
-app.get('/handlebars/dashboard', auth.isAuthorized, function(req, res) {
     var data = {};
     data["name"] = res.locals.name;
-    res.send(hbsHandler.exportDashboard(data));
+    res.send(hbsHandler.export("dashboard", data));
+});
+
+app.get('/settings', auth.isAuthorized, function (req, res) {
+    schema.User.findOne({"_id": res.locals.id}, function (err, curUser) {
+        var data = [
+            {
+                id: "first-name",
+                label: "First Name",
+                value: curUser.firstName,
+                feedbackText: false,
+                attributes: "readonly"
+            },
+            {
+                id: "last-name",
+                label: "Last Name",
+                value: curUser.lastName,
+                feedbackText: false,
+                attributes: "readonly"
+            },
+            {
+                id: "display-name",
+                label: "Display Name",
+                value: curUser.displayName,
+                feedbackText: true,
+                attributes: ""
+            },
+            {
+                id: "email",
+                label: "Email",
+                value: curUser.email,
+                feedbackText: false,
+                attributes: "readonly"
+            },
+            {
+                id: "last-login",
+                label: "Last Login",
+                value: new Date(curUser.lastLogin).toLocaleString(),
+                feedbackText: false,
+                attributes: "readonly"
+            },
+            {
+                id: "account-created",
+                label: "Account Created",
+                value: new Date(curUser.created).toLocaleString(),
+                feedbackText: false,
+                attributes: "readonly"
+            },
+            {
+                id: "numGames",
+                label: "Number of Games Played",
+                value: curUser.gameCount,
+                feedbackText: false,
+                attributes: "readonly"
+            }
+        ];
+        res.send(hbsHandler.export("settings", data));
+    });
 });
 
 app.get('/handlebars/navbar', function (req, res) {
     var data = {};
     auth.checkAuthorized(req, function (loggedin) {
         data["loggedin"] = loggedin;
-        res.send(hbsHandler.exportNavBar(data));
+        res.send(hbsHandler.export("navBar", data));
     });
 });
 

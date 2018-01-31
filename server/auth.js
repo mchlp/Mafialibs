@@ -1,5 +1,5 @@
 
-const TOKEN_EXPIRY_LENGTH = 60;
+const TOKEN_EXPIRY_LENGTH = 3*60;
 const TOKEN_SECRET = "tZlYtRubBS6L1U3!@K@$";
 
 var jwt = require('jsonwebtoken');
@@ -10,7 +10,7 @@ module.exports.isAuthorized = function(req, res, next) {
     if (token) {
         jwt.verify(token, TOKEN_SECRET, function(err, dec) {
             if (err) {
-                res.status(403).json({message: "Unauthorized."});
+                res.status(403).redirect("../login");
             } else {
                 res.locals.id = dec["id"];
                 res.locals.name = dec["name"];
@@ -18,7 +18,7 @@ module.exports.isAuthorized = function(req, res, next) {
             }
         })
     } else {
-        res.status(403).json({message: "Unauthorized."});
+        res.status(403).redirect("../login");
     }
 };
 
