@@ -18,6 +18,8 @@ var client = new googleAuth.OAuth2Client(CLIENT_ID, '', '');
 var cookieParser = require('cookie-parser');
 var auth = require("./server/auth");
 var schema = require("./server/schema");
+var settings = require("./server/settings");
+var users = require("./server/users");
 
 var mongoose = require('mongoose');
 var url = format("mongodb://%s:%s@%s:%s/%s", DB_USERNAME, DB_PASSWORD, DB_ADDRESS, DB_PORT, DB_DATABASE);
@@ -92,27 +94,9 @@ app.post('/loginVerify', function (req, res) {
     }, function (e, login) {
         var userData = login.getPayload();
         if (userData) {
-            var userID = userData["sub"];
-            var query = {_id: userID};
-            var curUser = {
-                _id: userData["sub"],
-                firstName: userData["given_name"],
-                lastName: userData["family_name"],
-                displayName: userData["given_name"],
-                fullName: userData["name"],
-                emailVerified: userData["email_verified"],
-                email: userData["email"],
-                picURL: userData["picture"],
-                lastLogin: new Date().toISOString()
-            };
-            schema.User.findOneAndUpdate(query, curUser, {
-                    upsert: true
-                },
-                function (err, doc) {
-                    if (err) throw err;
-                });
-            var userToken = auth.getToken(userData);
-            res.status(200).send({result: 'redirect', token: userToken, url: '../dashboard'});
+            users.createGoogeUser(userData, function(userToken) {
+                res.status(200).send({result: 'redirect', token: userToken, url: '../dashboard'});
+            });
         }
         else {
             res.status(200).send({result: 'redirect', url: '../login'});
@@ -151,58 +135,7 @@ app.get('/dashboard', auth.isAuthorized, function (req, res) {
 });
 
 app.get('/settings', auth.isAuthorized, function (req, res) {
-    schema.User.findOne({"_id": res.locals.id}, function (err, curUser) {
-        var data = [
-            {
-                id: "first-name",
-                label: "First Name",
-                value: curUser.firstName,
-                feedbackText: false,
-                attributes: "readonly"
-            },
-            {
-                id: "last-name",
-                label: "Last Name",
-                value: curUser.lastName,
-                feedbackText: false,
-                attributes: "readonly"
-            },
-            {
-                id: "display-name",
-                label: "Display Name",
-                value: curUser.displayName,
-                feedbackText: true,
-                attributes: ""
-            },
-            {
-                id: "email",
-                label: "Email",
-                value: curUser.email,
-                feedbackText: false,
-                attributes: "readonly"
-            },
-            {
-                id: "last-login",
-                label: "Last Login",
-                value: new Date(curUser.lastLogin).toLocaleString(),
-                feedbackText: false,
-                attributes: "readonly"
-            },
-            {
-                id: "account-created",
-                label: "Account Created",
-                value: new Date(curUser.created).toLocaleString(),
-                feedbackText: false,
-                attributes: "readonly"
-            },
-            {
-                id: "numGames",
-                label: "Number of Games Played",
-                value: curUser.gameCount,
-                feedbackText: false,
-                attributes: "readonly"
-            }
-        ];
+    settings.getData(res.locals.id, function(data) {
         res.send(hbsHandler.export("settings", data));
     });
 });

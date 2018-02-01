@@ -6,6 +6,15 @@ var userSchema = new Schema({
         type: Number,
         required: true
     },
+    source: {
+        type: String,
+        enum: ["google", "local"]
+    },
+    rank: {
+        type: String,
+        enum: ["admin", "user"],
+        default: "user"
+    },
     firstName: {
         type: String,
         required: true

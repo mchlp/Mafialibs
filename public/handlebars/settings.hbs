@@ -25,12 +25,13 @@
         <h3>Settings</h3>
         <br/>
         <form>
+            <img src="{{image}}" alt="..." class="img-thumbnail">
             <div class="custom-file">
                 <input type="file" class="custom-file-input" id="customFile">
                 <label class="custom-file-label" for="customFile">Choose file</label>
             </div>
             <div class="row">
-                {{#each this}}
+                {{#each fields}}
                     <div class="form-group col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-3">
                         <label for={{id}}>{{label}}</label>
                         <input type="text" class="form-control {{#if feedbackText}} is-valid {{/if}}" id="{{id}}" value="{{value}}" {{attributes}}>
