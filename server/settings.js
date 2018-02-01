@@ -73,7 +73,7 @@ module.exports.update = function (data, res) {
             image.resize(100, 100)
                 .write("./public/" + newImageLink);
         });
-        newData["picURL"] =  "./" + newImageLink;
+        newData["picURL"] =  "../" + newImageLink;
     }
     newData["displayName"] = data.display_name;
     users.updateDetails(userID, newData, function(success) {
