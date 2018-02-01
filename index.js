@@ -111,6 +111,10 @@ app.post('/displayNameVerify', function (req, res) {
     })
 });
 
+app.post('/settingsUpdate', auth.isAuthorized, function (req, res) {
+    settings.update(req.body, res);
+});
+
 app.get('/home', function (req, res) {
     res.sendFile(__dirname + "/public/views/home.html");
 });

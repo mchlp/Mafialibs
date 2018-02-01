@@ -3,7 +3,9 @@ function onSuccess(googleUser) {
     $.ajax({
         type: "POST",
         url: "../loginVerify/",
-        data: {"token": token},
+        data: {
+            token: token
+        },
         success: function (res) {
             if (res.result === 'redirect') {
                 document.cookie = "token=" + res.token + "; path=/;";

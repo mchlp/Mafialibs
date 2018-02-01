@@ -23,20 +23,31 @@
 <div class="container">
     <div class="jumbotron">
         <h3>Settings</h3>
-        <br/>
-        <form>
-            <img src="{{image}}" alt="..." class="img-thumbnail">
-            <div class="custom-file">
-                <input type="file" class="custom-file-input" id="customFile">
-                <label class="custom-file-label" for="customFile">Choose file</label>
+        <div class="alert alert-warning d-none" id="alert-warning">
+            <strong>Warning!</strong>
+            <div id="alert-warning-text"></div>
+        </div>
+        <form class="needs-validation" id="main-form" onsubmit="return false" novalidate>
+            <div class="mb-3">
+                <img src="{{image}}" alt="..." class="img-thumbnail" height="100" width="100">
+                <div class="form-group mt-1">
+                    <div class="custom-file">
+                        <input type="file" class="custom-file-input needs-custom-validation custom-validated"
+                               accept="image/gif, image/jpeg, image/png" id="profile-pic-input">
+                        <label class="custom-file-label" id="profile-pic-label" for="profile-pic-input">Choose New Profile Picture</label>
+                        <div class="invalid-feedback" id="image-feedback"></div>
+                    </div>
+                </div>
             </div>
             <div class="row">
                 {{#each fields}}
                     <div class="form-group col-xl-6 col-lg-6 col-md-12 col-sm-12 mb-3">
                         <label for={{id}}>{{label}}</label>
-                        <input type="text" class="form-control {{#if feedbackText}} is-valid {{/if}}" id="{{id}}" value="{{value}}" {{attributes}}>
-                        {{#if feedbackText}}
-                            <div id="{{id}}-feedback" class="valid-feedback">Shucks, check the formatting of that and try again.</div>
+                        <input type="text" class="form-control {{#if validation}}needs-custom-validation{{/if}}"
+                               id="{{id}}"
+                               value="{{value}}" {{attributes}} required>
+                        {{#if validation}}
+                            <div id="{{id}}-feedback"></div>
                         {{/if}}
                     </div>
                 {{/each}}

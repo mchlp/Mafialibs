@@ -4,9 +4,9 @@ var auth = require("./auth");
 
 module.exports.createGoogeUser = function(userData, callback) {
     var userID = userData["sub"];
-    var query = {_id: userID};
+    var query = {_id: "google_" + userID};
     var curUser = {
-        _id: userData["sub"],
+        _id: "google_"+userData["sub"],
         firstName: userData["given_name"],
         lastName: userData["family_name"],
         displayName: userData["given_name"],
@@ -22,7 +22,7 @@ module.exports.createGoogeUser = function(userData, callback) {
         },
         function (err, doc) {
             if (err) throw err;
-            var userToken = auth.getToken(userData);
+            var userToken = auth.getToken(curUser);
             callback(userToken);
         });
 };
