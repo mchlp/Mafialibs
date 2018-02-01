@@ -23,9 +23,9 @@
 <div class="container">
     <div class="jumbotron">
         <h3>Settings</h3>
-        <div class="alert alert-warning d-none" id="alert-warning">
+        <div class="alert alert-warning d-none" id="alert">
             <strong>Warning!</strong>
-            <div id="alert-warning-text"></div>
+            <div id="alert-text"></div>
         </div>
         <form class="needs-validation" id="main-form" onsubmit="return false" novalidate>
             <div class="mb-3">
@@ -52,7 +52,7 @@
                     </div>
                 {{/each}}
             </div>
-            <button class="btn btn-primary" type="submit">Save Changes</button>
+            <button class="btn btn-primary" type="submit" id="submit-button">Save Changes</button>
             <button class="btn btn-danger" onClick="window.location.reload()">Cancel Changes</button>
         </form>
     </div>

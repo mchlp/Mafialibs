@@ -94,7 +94,7 @@ app.post('/loginVerify', function (req, res) {
     }, function (e, login) {
         var userData = login.getPayload();
         if (userData) {
-            users.createGoogeUser(userData, function(userToken) {
+            users.upsertGoogleUser(userData, function(userToken) {
                 res.status(200).send({result: 'redirect', token: userToken, url: '../dashboard'});
             });
         }

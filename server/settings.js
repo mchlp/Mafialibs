@@ -1,6 +1,6 @@
-var cheerio = require('cheerio');
 var schema = require("./schema");
-var fs = require('fs');
+var jimp = require('jimp');
+var users = require('./users');
 
 module.exports.getData = function (id, callback) {
     schema.User.findOne({"_id": id}, function (err, curUser) {
@@ -63,11 +63,24 @@ module.exports.getData = function (id, callback) {
 };
 
 module.exports.update = function (data, res) {
-    console.log(data.image);
-    var imageData = data.image.replace(/^data:image\/\w+;base64,/, "");
-    var buffer = new Buffer(imageData, 'base64');
-    fs.writeFile("./public/data"+res.locals.id+".png", buffer, function () {
-        console.log("DONE WRITE");
+    var userID = res.locals.id;
+    var newData = {};
+    if (data.image != "") {
+        var imageData = data.image.replace(/^data:image\/\w+;base64,/, "");
+        var buffer = new Buffer(imageData, 'base64');
+        var newImageLink = "data/" + userID + ".jpg";
+        jimp.read(buffer).then(function (image) {
+            image.resize(100, 100)
+                .write("./public/" + newImageLink);
+        });
+        newData["picURL"] =  "./" + newImageLink;
+    }
+    newData["displayName"] = data.display_name;
+    users.updateDetails(userID, newData, function(success) {
+        if (success) {
+            res.json({status: "success"});
+        } else {
+            res.json({status: "failed"})
+        }
     });
-    var $ = cheerio.load(data.form);
 };

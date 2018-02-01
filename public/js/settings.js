@@ -9,9 +9,9 @@ $(document).ready(function () {
 
     testImage.onload = function () {
         if (this.width != this.height) {
-            $('#alert-warning').first().removeClass('d-none');
-            $('#alert-warning-text').first().text("The image you selected does not have the same width and height. " +
-                "It will be automatically cropped into a square. " +
+            $('#alert').first().removeClass('d-none');
+            $('#alert-text').first().text("The image you selected does not have the same width and height. " +
+                "It will be automatically resized into a square. " +
                 "To prevent this from happening, select an image that has the same width and height.");
         }
     };
@@ -52,7 +52,7 @@ $(document).ready(function () {
 function updateProfilePic() {
     var newFile = $('#profile-pic-input')[0].files[0];
     if (newFile) {
-        $('#alert-warning').first().addClass('d-none');
+        $('#alert').first().addClass('d-none');
         $('#profile-pic-input').removeClass().addClass('custom-file-input needs-custom-validation');
         $("#profile-pic-label").text(newFile.name);
         if (newFile.size > MAX_FILE_SIZE) {
@@ -94,7 +94,7 @@ function updateDisplayName() {
 }
 
 function updateSettings() {
-    console.log("SUBMIT");
+    $("#submit-button").text("Saving...");
     var forms = $(".needs-validation");
     var imageData = "";
     if (testImage.src) {
@@ -102,7 +102,7 @@ function updateSettings() {
         canvas.width = testImage.width;
         canvas.height = testImage.height;
         canvas.getContext("2d").drawImage(testImage, 0, 0);
-        imageData = canvas.toDataURL("image/png");
+        imageData = canvas.toDataURL("image/jpg");
     }
     Array.prototype.filter.call(forms, function (form) {
         if ($(form).hasClass('was-validated')) {
@@ -110,11 +110,19 @@ function updateSettings() {
                 type: "POST",
                 url: "../settingsUpdate/",
                 data: {
-                    form: $("#main-form").html(),
+                    display_name: $("#display-name").val(),
                     image: imageData
                 },
                 success: function (res) {
-                    alert(res.body);
+                    var status = res.status;
+                    if (status === "success") {
+                        window.location.reload();
+                    } else {
+                        $('#alert').first().removeClass('d-none');
+                        $("#alert").removeClass("alert-warning").addClass("alert-danger");
+                        $("#alert-text").text("An error has occured with the server. Try reloading the page and trying again later.");
+                        window.scrollTo(0, 0);
+                    }
                 },
                 dataType: "json"
             });
