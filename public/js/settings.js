@@ -99,7 +99,7 @@ function updateSettings() {
     var imageData = "";
     if (testImage.src) {
         testImage.width = 100;
-        testImage.height = 100;
+        testImage.height = "auto";
         var canvas = document.createElement('canvas');
         canvas.width = testImage.width;
         canvas.height = testImage.height;
