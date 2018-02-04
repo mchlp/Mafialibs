@@ -120,7 +120,7 @@ function updateSettings() {
                 success: function (res) {
                     var status = res.status;
                     if (status === "success") {
-                        window.location.reload();
+                        window.location.reload(true);
                     } else {
                         $('#alert').first().removeClass('d-none');
                         $("#alert").removeClass("alert-warning").addClass("alert-danger");
