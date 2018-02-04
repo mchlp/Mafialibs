@@ -98,6 +98,8 @@ function updateSettings() {
     var forms = $(".needs-validation");
     var imageData = "";
     if (testImage.src) {
+        testImage.width = 100;
+        testImage.height = 100;
         var canvas = document.createElement('canvas');
         canvas.width = testImage.width;
         canvas.height = testImage.height;

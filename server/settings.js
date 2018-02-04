@@ -1,5 +1,4 @@
 var schema = require("./schema");
-var jimp = require('jimp');
 var users = require('./users');
 
 module.exports.getData = function (id, callback) {
