@@ -5,6 +5,8 @@ var testImage;
 
 $(document).ready(function () {
 
+    $("#profile-pic")[0].src = $("#profile-pic")[0].src + "?t=" + new Date().getTime();
+
     testImage = new Image();
 
     testImage.onload = function () {
