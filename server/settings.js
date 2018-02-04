@@ -1,5 +1,6 @@
 var schema = require("./schema");
 var users = require('./users');
+var jimp = require('jimp');
 
 module.exports.getData = function (id, callback) {
     schema.User.findOne({"_id": id}, function (err, curUser) {
