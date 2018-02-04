@@ -51,7 +51,8 @@ process.on('SIGINT', function () {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.json({limit: '60mb'}));
+app.use(bodyParser.urlencoded({limit: '60mb', extended: true}));
 
 app.use(cookieParser());
 

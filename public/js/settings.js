@@ -1,4 +1,4 @@
-const MAX_FILE_SIZE = 100000;
+const MAX_FILE_SIZE = 50000000;
 
 var orignalName;
 var testImage;
@@ -57,7 +57,7 @@ function updateProfilePic() {
         $("#profile-pic-label").text(newFile.name);
         if (newFile.size > MAX_FILE_SIZE) {
             $('#profile-pic-input').addClass('is-invalid');
-            $('#image-feedback').addClass('invalid-feedback').text("The uploaded image has a size of " + newFile.size / 1000 + " KB, which exceeds the maximum size of " + MAX_FILE_SIZE / 1000 + "KB.");
+            $('#image-feedback').addClass('invalid-feedback').text("The uploaded image has a size of " + newFile.size / 1000000 + " MB, which exceeds the maximum size of " + MAX_FILE_SIZE / 1000000 + "MB.");
         } else {
             $('#profile-pic-input').addClass('custom-validated is-valid');
             $('#image-feedback').removeClass('invalid-feedback').addClass('valid-feedback').text("The uploaded image looks good!");
