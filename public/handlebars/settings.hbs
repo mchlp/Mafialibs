@@ -29,7 +29,7 @@
         </div>
         <form class="needs-validation" id="main-form" onsubmit="return false" novalidate>
             <div class="mb-3">
-                <img src="{{image}}" alt="..." class="img-thumbnail" height="100" width="100">
+                <img src="{{image}}?t=" + new Date().getTime() alt="..." class="img-thumbnail" height="100" width="100">
                 <div class="form-group mt-1">
                     <div class="custom-file">
                         <input type="file" class="custom-file-input needs-custom-validation custom-validated"
