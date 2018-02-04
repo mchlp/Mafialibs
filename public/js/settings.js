@@ -98,12 +98,14 @@ function updateSettings() {
     var forms = $(".needs-validation");
     var imageData = "";
     if (testImage.src) {
-        testImage.width = 100;
-        testImage.height = "auto";
         var canvas = document.createElement('canvas');
         canvas.width = testImage.width;
         canvas.height = testImage.height;
-        canvas.getContext("2d").drawImage(testImage, 0, 0);
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(testImage, 0, 0);
+        var min = Math.min(canvas.width, canvas.height);
+        var ratio = 100/min;
+        ctx.scale(ratio, ratio);
         imageData = canvas.toDataURL("image/jpg");
     }
     Array.prototype.filter.call(forms, function (form) {
