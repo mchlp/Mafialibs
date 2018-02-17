@@ -47,7 +47,7 @@ module.exports.createGame = function (gameType, res) {
         if (game["name"] == gameType) {
             getGameID(1, function (id) {
                 if (id) {
-                    setupGame(id, game, function() {
+                    setupGame(id, game, function () {
                         module.exports.joinGame(id, res);
                     });
                 } else {
@@ -66,7 +66,7 @@ module.exports.createGame = function (gameType, res) {
 module.exports.startGame = function (url, res) {
     var match = url.match("/.+\\/(.+)$");
     schema.Game.findOne({game_id: match}, function (err, found) {
-        if (found["status"] === "waiting") {
+        if (found["open"]) {
             switch (found["type"]) {
                 case "chatroom":
                     res.sendFile("chat.html", {root: __dirname + "/../public/views"});
@@ -94,19 +94,78 @@ function setupGame(id, game, cb) {
         } else {
             sockets[id] = io.of('/' + id);
             console.log('created socket at /' + id);
-            sockets[id].on('connection', function(socket) {
+            sockets[id].on('connection', function (socket) {
                 console.log("socket connected");
-                auth.getTokenInfo(socket.handshake.headers.cookie, function(data) {
-                    schema.Game.findOneAndUpdate(
-                        {game_id: id},
-                        {$addToSet: {users: {user_id: data["id"], socket: socket.id}}}
-                    ).exec();
-                    socket.on('disconnect', function () {
-                        console.log("socket disconnected");
+
+                auth.getTokenInfo(socket.handshake.headers.cookie, function (data) {
+
+                    schema.User.findOne({_id: data["id"]}, function (err, doc) {
+
+                        if (err) {throw err}
+
+                        var imageURL = doc["picURL"];
+
                         schema.Game.findOneAndUpdate(
-                            {game_id: id},
-                            {$pull: {users: {user_id: data["id"], socket: socket.id}}}
-                        ).exec();
+                            {
+                                game_id: id
+                            },
+                            {
+                                $inc: {
+                                    user_count: 1
+                                },
+                                $addToSet: {
+                                    users_secret: {
+                                        user_id: data["id"],
+                                        socket: socket.id,
+                                    },
+                                    users_public: {
+                                        user_id: data["id"],
+                                        user_name: data["name"],
+                                        user_image: imageURL
+                                    }
+                                }
+                            },
+                            {
+                                new: true
+                            },
+                            function(err, doc) {
+                                if (err) {throw err}
+                                sockets[id].emit('update users', doc["users_public"]);
+                            }
+                        );
+
+                        socket.on('disconnect', function () {
+                            console.log("socket disconnected");
+
+                            // check if there are users left, if not remove the game
+                            schema.Game.findOneAndUpdate(
+                                {
+                                    game_id: id
+                                },
+                                {
+                                    $inc: {
+                                        user_count: -1
+                                    },
+                                    $pull: {
+                                        users_public: {
+                                            user_id: data["id"]
+                                        },
+                                        users_secret: {
+                                            user_id: data["id"]
+                                        }
+                                    }
+                                },
+                                {
+                                    new: true
+                                },
+                                function (err, doc) {
+                                    if (doc["user_count"] <= 0) {
+                                        schema.Game.findOneAndRemove({game_id: id}).exec();
+                                        delete sockets[id];
+                                    }
+                                }
+                            );
+                        });
                     });
                 });
             });
