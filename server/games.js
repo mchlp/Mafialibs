@@ -81,6 +81,7 @@ module.exports.createGame = function (gameType, res) {
 module.exports.startGame = function (url, res) {
     var match = url.match("/.+\\/(.+)$");
     schema.Game.findOne({game_id: match}, function (err, found) {
+        console.log(found);
         if (found["open"]) {
             switch (found["type"]) {
                 case "chatroom":
