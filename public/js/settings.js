@@ -3,7 +3,7 @@ const MAX_FILE_SIZE = 50000000;
 var orignalName;
 var testImage;
 
-$(document).ready(function () {
+$(document).ready(function() {
 
     $("#profile-pic")[0].src = $("#profile-pic")[0].src + "?t=" + new Date().getTime();
 

@@ -5,7 +5,9 @@
     <link rel="stylesheet" href="../styles/style.css">
     <link rel="stylesheet" href="../lib/bootstrap.min.css">
     <script src="../lib/jquery-3.3.1.min.js"></script>
+    <script src="../lib/bootstrap.bundle.min.js"></script>
     <script src="../lib/bootstrap.min.js"></script>
+    <script src="../js/dashboard.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -24,6 +26,39 @@
         <h3>Dashboard</h3>
         <p>Hello, {{name}}!</p>
         <p>Here are the games</p>
+        <br>
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">Join Game</button>
+            <div class="dropdown-menu">
+                <form class="px-3 py-1" id="game-join-form" onsubmit="return false">
+                    <div class="form-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-prepend">Game ID</span>
+                        </div>
+                        <input type="text" id="game-id" class="form-control">
+                    </div>
+                    <div class="alert alert-warning d-none" id="invalid-id-label">Invalid Game ID Entered</div>
+                    <button class="btn btn-secondary" type="submit">Go</button>
+                </form>
+            </div>
+        </div>
+        <br>
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown">Create Game</button>
+            <div class="dropdown-menu">
+                <form class="px-3 py-1" id="game-create-form" onsubmit="return false">
+                    <div class="form-group">
+                        <select class="custom-select" id="game-type">
+                            <option selected>Select a Game...</option>
+                            {{#each games}}
+                                <option>{{name}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <button class="btn btn-secondary" type="submit">Create Game</button>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 </body>

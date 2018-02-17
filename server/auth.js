@@ -3,6 +3,7 @@ const TOKEN_EXPIRY_LENGTH = 3*60;
 const TOKEN_SECRET = "tZlYtRubBS6L1U3!@K@$";
 
 var jwt = require('jsonwebtoken');
+var cookie = require('cookie');
 
 // middleware function
 module.exports.isAuthorized = function(req, res, next) {
@@ -21,6 +22,22 @@ module.exports.isAuthorized = function(req, res, next) {
         res.status(403).redirect("../login");
     }
 };
+
+module.exports.getTokenInfo = function(c, cb) {
+    if (c) {
+        var token = cookie.parse(c)["token"];
+        jwt.verify(token, TOKEN_SECRET, function(err, dec) {
+            if (err) {
+               cb(null);
+            } else {
+                cb({
+                    id: dec["id"],
+                    name: dec["name"]
+                });
+            }
+        })
+    }
+}
 
 module.exports.checkAuthorized = function(req, callback) {
     var token =  req.cookies["token"];

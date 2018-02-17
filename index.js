@@ -7,9 +7,10 @@ const CLIENT_ID = "61123325910-bqfncmh15jgfg2o1millsnbd9k3floku.apps.googleuserc
 
 var express = require('express');
 var app = express();
-var http = require('http').Server(app);
+var server = require('http').createServer(app);
+var io = require("socket.io")(server);
+//var http = require('http').Server(app);
 var path = require('path');
-var io = require('socket.io')(http);
 var session = require('cookie-session');
 var format = require('util').format;
 var bodyParser = require('body-parser');
@@ -21,9 +22,11 @@ var schema = require("./server/schema");
 var settings = require("./server/settings");
 var users = require("./server/users");
 
+var games = require("./server/games");
+games.setup(io);
+
 var mongoose = require('mongoose');
 var url = format("mongodb://%s:%s@%s:%s/%s", DB_USERNAME, DB_PASSWORD, DB_ADDRESS, DB_PORT, DB_DATABASE);
-
 var hbsHandler = require('./server/hbsHelper');
 hbsHandler.compileTemplates();
 
@@ -32,7 +35,8 @@ mongoose.connect(url);
 
 mongoose.connection.on('connected', function () {
     connectedToDB = true;
-    console.log("CONNECTED");
+    schema.Game.remove({}).exec();
+    console.log("CONNECTED TO DB");
 });
 
 mongoose.connection.on('error', function (err) {
@@ -72,8 +76,20 @@ app.get('/', function (req, res) {
     });
 });
 
-app.get('/list', function (req, res) {
+app.get('/list/users', function (req, res) {
     schema.User.find({}, function (err, result) {
+        if (err) {
+            throw err
+        } else if (result.length) {
+            res.send(result);
+        } else {
+            res.send("No document found");
+        }
+    });
+});
+
+app.get('/list/games', function (req, res) {
+    schema.Game.find({}, function (err, result) {
         if (err) {
             throw err
         } else if (result.length) {
@@ -112,12 +128,24 @@ app.post('/displayNameVerify', function (req, res) {
     })
 });
 
+app.post('/joinGame', auth.isAuthorized, function (req, res) {
+    games.joinGame(req.body.game_id, res);
+});
+
+app.post('/createGame', auth.isAuthorized, function (req, res) {
+   games.createGame(req.body.game_type, res);
+});
+
 app.post('/settingsUpdate', auth.isAuthorized, function (req, res) {
     settings.update(req.body, res);
 });
 
 app.get('/home', function (req, res) {
     res.sendFile(__dirname + "/public/views/home.html");
+});
+
+app.get('/error', function(req, res) {
+    res.sendFile(__dirname + "/public/views/error.html");
 });
 
 app.get('/about', function (req, res) {
@@ -130,12 +158,13 @@ app.get('/login', function (req, res) {
 
 app.get('/logout', function (req, res) {
     res.clearCookie("token");
-    res.redirect('../')
+    res.redirect('../');
 });
 
 app.get('/dashboard', auth.isAuthorized, function (req, res) {
     var data = {};
     data["name"] = res.locals.name;
+    data["games"] = games.games;
     res.send(hbsHandler.export("dashboard", data));
 });
 
@@ -143,6 +172,10 @@ app.get('/settings', auth.isAuthorized, function (req, res) {
     settings.getData(res.locals.id, function(data) {
         res.send(hbsHandler.export("settings", data));
     });
+});
+
+app.get('/play/*', auth.isAuthorized, function(req, res) {
+    games.startGame(req.url, res);
 });
 
 app.get('/handlebars/navbar', function (req, res) {
@@ -157,6 +190,6 @@ app.use(function (req, res) {
     res.status(404).send("Page not found!");
 });
 
-http.listen(3000, function () {
+server.listen(3000, function () {
     console.log("listenting on *:3000");
 });

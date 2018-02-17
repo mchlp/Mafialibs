@@ -1,6 +1,29 @@
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
+var gameSchema = new Schema({
+    game_id: {
+        type: String,
+        required: true
+    },
+    status: {
+        type: String,
+        default: "waiting"
+    },
+    type: {
+        type: String,
+        required: true
+    },
+    created: {
+        type: String,
+        default: new Date().toISOString()
+    },
+    users: {
+        type: Array,
+        default: []
+    }
+});
+
 var userSchema = new Schema({
     _id: {
         type: String,
@@ -58,3 +81,4 @@ var userSchema = new Schema({
 });
 
 module.exports.User = mongoose.model("User", userSchema);
+module.exports.Game = mongoose.model("Game", gameSchema);
