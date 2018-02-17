@@ -48,7 +48,21 @@ module.exports.createGame = function (gameType, res) {
         if (game["name"] == gameType) {
             getGameID(1, function (id) {
                 if (id) {
-                    setupGame(id, game, function () {
+                    var callback;
+                    switch (game["id"]) {
+                        case "chatroom":
+                            callback = function (id, socket) {
+                                chatroom.setupChat(id, socket);
+                            };
+                            break;
+                        default:
+                            res.json({
+                                status: "failed",
+                                url: "../error"
+                            })
+                            return;
+                    }
+                    setupGame(id, game, callback, function() {
                         module.exports.joinGame(id, res);
                     });
                 } else {
@@ -85,7 +99,7 @@ module.exports.startGame = function (url, res) {
 };
 
 // creates socket for game
-function setupGame(id, game, cb) {
+function setupGame(id, game, setupGameSpecificSocket, cb) {
     schema.Game.create({
         game_id: id,
         type: game["id"]
@@ -102,7 +116,9 @@ function setupGame(id, game, cb) {
 
                     schema.User.findOne({_id: data["id"]}, function (err, doc) {
 
-                        if (err) {throw err}
+                        if (err) {
+                            throw err
+                        }
 
                         var imageURL = doc["picURL"];
 
@@ -118,6 +134,8 @@ function setupGame(id, game, cb) {
                                     users_secret: {
                                         user_id: data["id"],
                                         socket: socket.id,
+                                        user_image: imageURL,
+                                        user_name: data["name"],
                                     },
                                     users_public: {
                                         user_id: data["id"],
@@ -129,9 +147,11 @@ function setupGame(id, game, cb) {
                             {
                                 new: true
                             },
-                            function(err, doc) {
-                                if (err) {throw err}
-                                sockets[id].emit('update users', doc["users_public"]);
+                            function (err, doc) {
+                                if (err) {
+                                    throw err
+                                }
+                                sockets[id].emit('update-users', doc["users_public"]);
                             }
                         );
 
@@ -160,7 +180,9 @@ function setupGame(id, game, cb) {
                                     new: true
                                 },
                                 function (err, doc) {
-                                    if (err) {throw err}
+                                    if (err) {
+                                        throw err
+                                    }
                                     sockets[id].emit('update users', doc["users_public"]);
                                     if (doc["user_count"] <= 0) {
                                         schema.Game.findOneAndRemove({game_id: id}).exec();
@@ -169,6 +191,8 @@ function setupGame(id, game, cb) {
                                 }
                             );
                         });
+
+                        setupGameSpecificSocket(id, socket);
                     });
                 });
             });

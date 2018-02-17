@@ -1,5 +1,5 @@
 
-const TOKEN_EXPIRY_LENGTH = 3*60;
+const TOKEN_EXPIRY_LENGTH = 2*60*60;
 const TOKEN_SECRET = "tZlYtRubBS6L1U3!@K@$";
 
 var jwt = require('jsonwebtoken');

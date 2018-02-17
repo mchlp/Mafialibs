@@ -27,5 +27,15 @@
     justify-content: space-between;
     flex-direction: column;
     display: flex;
-    height: 85vh;
+    height: 80vh;
+}
+
+.chat-message-block {
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.chat-message-body {
+    margin-left: 55px;
+    background-color: #efefef;
 }
