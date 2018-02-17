@@ -17,3 +17,15 @@
 .form-control[readonly] {
     background-color: #c8cbce;
 }
+
+#chat-text-area {
+    height: 85vh;
+    overflow-y: scroll;
+}
+
+#chat-area {
+    justify-content: space-between;
+    flex-direction: column;
+    display: flex;
+    height: 85vh;
+}

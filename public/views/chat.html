@@ -30,16 +30,791 @@
 
 <div class="container-fluid">
     <div class="col-xl-3 col-lg-3 col-md-4 col-sm-12 col-xs-12 float-left">
-        <div class="list-group" id="user-list">
-            <div class="list-group-item d-flex justify-content-between align-items-center active">
-                <img src="../data/google_114909863284889204016.jpg" height="50">
-                <p class="align-middle text-center m-0">Test</p>
-            </div>
-        </div>
+        <div class="list-group" id="user-list"></div>
     </div>
     <div class="col-xl-9 col-lg-9 col-md-8 col-sm-12 col-xs-12 float-right">
-        <h3>Chat Room</h3>
-        <p>Loading...</p>
+        <div id="chat-area">
+            <div class="jumbotron" id="chat-text-area">
+                <h3>Chat Room</h3>
+                <p>
+                    Ben.Knows.Code()
+                    Searching for technology to make a better web
+
+                    Home Projects About
+                    Monday, August 26, 2013
+                    Dynamically Creating Game Rooms using Socket.IO and NodeJS
+                    As I ventured into some real-time work with the browser, it made sense to jump into Socket.IO and
+                    see what it had to offer. My primary focus was to build a turn-based game in the browser which
+                    allowed 2-4 players to play the game in real-time. I liked Socket.IO because it handles the details
+                    of normalizing the mechanism for providing real-time communication in the browser, integrates
+                    out-of-the-box with NodeJS and Express, and already contains a "room" feature to isolate messages. I
+                    found some quick and dirty examples floating around but nothing that really addressed how to
+                    dynamically generate a room and get everyone connected. The approach I ultimately took was a hybrid
+                    solution using a handful of traditional REST API end-points to handle registering a new game and
+                    other players joining that game and switching to Socket.IO events to manage the game play once the
+                    registration phase was complete. In this post, I'm not going to present a full game but, instead,
+                    strip down the code samples to what I believe is the basic boilerplate to create a game and
+                    coordinate the process of adding players. Along the way, I'll point out some issues related to
+                    concurrency and address a few failure scenarios.
+
+                    Initializing
+                    Before diving in, we need to connect all our libraries together so they can work together properly.
+                    On the server side, we need to create an Express application, connect it to a HTTP server, and then
+                    attach a Socket.IO instance to the server as well:
+
+                    ?
+                    1
+                    2
+                    3
+                    4
+                    5
+                    6
+                    var express = require('express'),
+                    app = express(),
+                    server = require('http').createServer(app),
+                    io = require('socket.io').listen(server);
+
+                    server.listen(4000);
+
+
+                    Socket.IO is capable of serving the necessary client library so all you need to do is insert a
+                    script tag in the main HTML file to load it:
+
+
+                    That gives us a base server/client setup. Now its time to model some data.
+
+                    Basic Game Data
+                    Before jumping into the actual process, I knew I was going to need to track more information than
+                    just an identifier representing the Socket.IO room. I was going to need to know the name of each
+                    player, who has the current turn, all the moves, and the current status. I chose to use Mongoose to
+                    model my game schema and abstract the interface to MongoDB. The parts related to setting up the room
+                    are below:
+
+                    ?
+                    1
+                    2
+                    3
+                    4
+                    5
+                    6
+                    7
+                    8
+                    9
+                    10
+                    11
+                    12
+                    13
+                    mongoose.Schema({
+
+                    room: { type: String, index: true },
+                    status: String,
+                    numPlayers: Number,
+
+                    players: [mongoose.Schema({
+                    id: String,
+                    name: String,
+                    status: String
+                    }, { _id: false })]
+
+                    });
+
+
+                    This basic setup will allow me to track the registration process and determine when all the users
+                    have joined the game. The room will be a user-friendly short string of letters and numbers (like
+                    "RR1MGY4V") that can be entered by other players the "owner" of the game wants to invite.
+
+                    Game Life-cycle
+                    With the schema defined, I had to next decide what states were required to track the registration
+                    process. Many games will probably follow this basic life-cycle:
+
+                    Register Game -> Players Join -> All Players Ready -> Play the Game -> Game Over
+
+                    At each phase, there's logic on both the client and server that need to run to complete all the
+                    processing and ensure all the participates are synchronized. Let's break down each step and look at
+                    some of the code necessary to make it all work.
+
+                    Register
+                    Like I mentioned above, I handled the registration process as REST API end-points using Express
+                    handlers. I did this because I wanted to collect a little information on each player and store it so
+                    it was available for display during the game. Additionally, it just seemed easier to make a post
+                    request that resulted in a game ID that could be used by other players to join the game and in the
+                    subsequent Socket.IO connection process. If you refer back to the Mongoose schema object, you'll
+                    notice there is a numPlayers field. This value is provided when a player creates a new game. We'll
+                    call this person the owner of the game simply because they are establishing a new session and will
+                    be responsible for distributing the generated game code (room) to the other players they want to
+                    join. During this initial registration, the owner is added as the first player in the players array
+                    with a status of "joined" and the remaining numPlayers are added to that array with the status of
+                    "open". The main status of the game is set to "waiting" since it can't start until everyone else is
+                    present. Once registered, the returned game code will be recorded locally in the browser along with
+                    a unique player ID. Upon recording that information, the Socket.IO connection is established and a
+                    "join" event is emitted with the acquired game code and player ID so the first player is added to
+                    the room.
+
+                    Given that description of the logic, let's begin with the server handler for creating the game:
+
+                    ?
+                    1
+                    2
+                    3
+                    4
+                    5
+                    6
+                    7
+                    8
+                    9
+                    10
+                    11
+                    12
+                    13
+                    14
+                    15
+                    16
+                    17
+                    18
+                    19
+                    20
+                    21
+                    22
+                    23
+                    24
+                    25
+                    26
+                    27
+                    28
+                    29
+                    30
+                    31
+                    32
+                    33
+                    34
+                    35
+                    36
+                    37
+                    38
+                    39
+                    40
+                    41
+                    42
+                    43
+                    44
+                    app.post('/start', function (req, res) {
+
+                    var room = /* Make up some random letter/numbers */,
+                    pid = /* Another random code */,
+                    num = req.body.numPlayers,
+                    players = [{
+                    id: pid,
+                    name: req.body.name,
+                    status: 'joined',
+                    statusDate: Date.now()
+                    }];
+
+                    // Create placeholders for the other players to join
+                    // the game.
+                    for ( var i=1;i
+                    <num
+                            ;i++ ) {
+
+                            players.push({
+                            id: pid+
+                    '-'+i,
+                    name: 'Open',
+                    status: 'open',
+                    statusDate: Date.now()
+                    });
+
+                    }
+
+                    Game.create({
+                    room: room,
+                    status: 'waiting',
+                    numPlayers: num,
+                    players: players
+                    },
+                    function( err, game ) {
+
+                    var data = game.toJSON();
+
+                    // Respond with game record and
+                    // add the player's ID so it can be recorded locally
+                    data.action = 'start';
+                    data.player = pid;
+
+                    res.send( data );
+                    });
+
+                    });
+
+
+                    Next, on the client side, I'll use Backbone to abstract the AJAX call. My model will reflect the
+                    server version so for brevity, I'm only including the start function which will call the end-point
+                    with the required data to create the game:
+
+                    ?
+                    1
+                    2
+                    3
+                    4
+                    5
+                    6
+                    7
+                    8
+                    var Game = Backbone.Model.extend({
+                    ...
+                    start: function( data ) {
+                    // POST name and number of players to
+                    // server to create the game
+                    return this.save( data, { url: '/start' });
+                    }
+                    });
+
+
+                    Now, in the main program, you create a new game model, collect some data from the person starting
+                    the game, and call the start function with that data:
+
+                    ?
+                    1
+                    2
+                    3
+                    4
+                    5
+                    6
+                    7
+                    8
+                    9
+                    10
+                    11
+                    12
+                    13
+                    14
+                    15
+                    16
+                    17
+                    18
+                    19
+                    20
+                    21
+                    22
+                    var game = new Game(),
+                    socket, dialog;
+
+                    // Get name and number of players variables from dialog
+                    // not shown here, but pretend there is an object
+                    // called "dialog" that contains the required data
+                    game.start( { name: dialog.name, numPlayers: dialog.numPlayers } ).then(
+                    function( data ) {
+
+                    // Open socket
+                    socket = io.connect();
+
+                    // Wait for connection and then emit the join message with
+                    // the room and player ID provided in the API response.
+                    socket.on( 'connect', function() {
+                    socket.emit( 'join', { room: data.room, player: data.player } );
+                    });
+                    },
+                    function() {
+                    // Error
+                    }
+                    );
+
+
+                    This is where the logistics of building the Socket.IO connect occurs. Once the server returns the
+                    game data, we can pull out the room and player IDs and pass those up through a join message emitted
+                    on the established connection. On the server side, we need to listen for the new connection and
+                    define a handler for the join event:
+
+                    ?
+                    1
+                    2
+                    3
+                    4
+                    5
+                    6
+                    7
+                    8
+                    9
+                    10
+                    11
+                    12
+                    13
+                    14
+                    15
+                    16
+                    17
+                    18
+                    19
+                    20
+                    21
+                    22
+                    23
+                    24
+                    25
+                    26
+                    27
+                    28
+                    29
+                    30
+                    31
+                    32
+                    33
+                    34
+                    35
+                    36
+                    37
+                    38
+                    39
+                    40
+                    41
+                    42
+                    43
+                    44
+                    45
+                    46
+                    47
+                    48
+                    49
+                    50
+                    51
+                    52
+                    53
+                    54
+                    55
+                    56
+                    io.sockets.on('connection', function ( socket ) {
+
+                    // Globals set in join that will be available to
+                    // the other handlers defined on this connection
+                    var _room, _id, _player;
+
+                    socket.on( 'join', function ( data ) {
+
+                    // Static helper to lookup of a game based on the room
+                    Game.findByRoom( data.room, function( err, game ) {
+
+                    var pcnt = 0, pidx;
+
+                    if ( game ) {
+
+                    // Remember this for later
+                    _id = game._id;
+                    _room = game.room;
+                    _player = data.player;
+
+                    // Another helper to find player by ID in the
+                    // players array. They should already be there
+                    // since the API functions will have set it up.
+                    pidx = game.findPlayer( _player );
+
+                    if ( pidx !== false ) {
+
+                    // Join the room.
+                    socket.join( _room );
+
+                    // Now emit messages to everyone else in this room. If other
+                    // players in this game are connected, only those clients
+                    // will receive the message
+                    io.sockets.in( _room ).emit( 'joined' );
+
+                    // Now, check if everyone is here
+                    game.players.forEach(function( p ) {
+                    if ( p.status == 'joined' )
+                    pcnt++;
+                    });
+
+                    // If so, update statuses, initialize
+                    // and notify everyone the game can begin
+                    if ( pcnt == game.numPlayers ) {
+
+                    game.save(function( err, game ) {
+                    io.sockets.in( _room ).emit( 'ready' );
+                    });
+
+                    }
+
+                    }
+                    }
+                    });
+                    });
+                    });
+
+
+                    That logic will get the room established and the first player joined in the game. Next, we need to
+                    get the other players to join so the game can begin.
+
+                    Joining
+                    The other players the owner sends the game code to will use a similar registration process. However,
+                    they'll use a different REST API end-point which will lookup the provided game code and attempt to
+                    find an slot in the players array with the status of "open". If a spot is found, the player ID is
+                    returned and the socket connection is built just like in the registration process including emitting
+                    the join message.
+
+                    Revisiting the Game model, we'll add a join function which will post to the handler on the server:
+
+                    ?
+                    1
+                    2
+                    3
+                    4
+                    5
+                    6
+                    7
+                    8
+                    var Game = Backbone.Model.extend({
+                    ...
+                    join: function( data ) {
+                    // POST name and game code (room) to
+                    // server to join the game
+                    return this.save( data, { url: '/join/'+data.room });
+                    }
+                    });
+
+
+                    Now, again in the main program, we'll create our Game model instance but this time call the join
+                    function to establish our connection. Upon successfully joining, the Socket.IO connection is created
+                    exactly the same as in the game creation handler:
+
+                    ?
+                    1
+                    2
+                    3
+                    4
+                    5
+                    6
+                    7
+                    8
+                    9
+                    10
+                    11
+                    12
+                    13
+                    14
+                    15
+                    16
+                    17
+                    18
+                    19
+                    20
+                    21
+                    22
+                    var game = new Game(),
+                    socket, dialog;
+
+                    // Get player name and room identifier variables from dialog
+                    // not shown here, but pretend there is an object
+                    // called "dialog" that contains the required data
+                    game.join( { name: dialog.name, room: dialog.room} ).then(
+                    function( data ) {
+
+                    // Open socket
+                    socket = io.connect();
+
+                    // Wait for connection and then emit the join message with
+                    // the room and player ID provided in the API response.
+                    socket.on( 'connect', function() {
+                    socket.emit( 'join', { room: data.room, player: data.player } );
+                    });
+                    },
+                    function() {
+                    // Error
+                    }
+                    );
+
+
+                    The server-side join handler works a little differently than the start handler. The game document
+                    should already exist with an array of potentially available player slots. Each join call needs to
+                    attempt to locate an open slot and register the joining player in that index of the array. Since
+                    several people could potentially join at the same time, you have to deal with concurrent updates to
+                    the players array. If player 2 joins at the same time as player 3, they will both attempt to change
+                    their index of the players array and save the data. Whatever version they pull out of the database
+                    before changing it will be saved back to the database. Whoever saves last will overwrite the other
+                    player making it appear as if they never joined. The window for this is quite small, however,
+                    perfectly possible and does need to be addressed. These types of issues will drive you mad trying to
+                    track down. As such, the join handler will have to find the opening and update it in one operation:
+                    ?
+                    1
+                    2
+                    3
+                    4
+                    5
+                    6
+                    7
+                    8
+                    9
+                    10
+                    11
+                    12
+                    13
+                    14
+                    15
+                    16
+                    17
+                    18
+                    19
+                    20
+                    21
+                    22
+                    23
+                    24
+                    25
+                    26
+                    27
+                    28
+                    29
+                    30
+                    31
+                    32
+                    33
+                    34
+                    35
+                    36
+                    37
+                    38
+                    39
+                    40
+                    41
+                    42
+                    43
+                    44
+                    45
+                    46
+                    47
+                    48
+                    49
+                    50
+                    51
+                    52
+                    app.post('/join/:room', function (req, res) {
+
+                    var pid = /* Random, random */,
+                    player, pidx;
+
+                    // First find the room and validate it exists. The returned game document
+                    // will not be modified. That will be done later using findOneAndUpdate()
+                    // I just want to be able to differentiate between error conditions -
+                    // room not found vs room full.
+                    Game.findByRoom( req.params.room, function( err, game ) {
+
+                    if ( err || !game ) {
+
+                    res.send( 400, { code: 'roomNotFound', message: 'Failed to find the expected game room' } );
+
+                    } else {
+
+                    player = {
+                    id: pid,
+                    name: req.body.name,
+                    status: 'joined',
+                    statusDate: Date.now()
+                    };
+
+                    // In the unlikely event that two or more players attempt to join the same
+                    // game at the exact same time, we need to grab an open spot in one operation
+                    Game.findOneAndUpdate(
+                    { '_id': game._id, 'players.status': { $in: [ 'left', 'open' ] } },
+                    { $set: { 'players.$': player } },
+                    function( err, game ) {
+
+                    var data;
+
+                    if ( game ) {
+
+                    data = game.toJSON();
+
+                    data.action = 'join';
+                    data.player = pid;
+
+                    res.send( data );
+
+                    } else {
+                    res.send( 400, { code: 'gameFull', message: 'All available player slots have been filled' } );
+                    }
+
+                    }
+                    );
+                    }
+
+                    });
+                    });
+
+
+                    These are the basic pieces to building a game and coordinating the process of joining all the
+                    players.
+
+                    Play the Game
+                    Once everyone has joined, the server can emit a "ready" event to tell the browser clients the game
+                    can start. Depending on the type of game you're making, you'll may need to pass along other
+                    information in that event to inform the client-side logic how to proceed. In the case of my
+                    turn-based game, I needed to tell the browser who had the first turn. Since I know that each client
+                    knows its player ID, I can just send down the player ID of who gets to go first. From there, the
+                    game just cycles through a series of critical stages which emit events to the server and the server
+                    broadcasts to all the players in the room to keep things synchronized.
+
+                    While in a perfect world no one would drop out of the game while its being played, its probably
+                    going to happen. You can listen to the disconnect on the socket and handle it accordingly. You'll
+                    probably want to update the player's record in the game to show that they left and then notify all
+                    the other player's clients that this occurred. Since you're missing a player, you'll probably want
+                    to pause the game and wait for someone else to join or that other player to jump back in:
+
+                    ?
+                    1
+                    2
+                    3
+                    4
+                    5
+                    6
+                    7
+                    8
+                    9
+                    10
+                    11
+                    12
+                    13
+                    14
+                    15
+                    16
+                    17
+                    18
+                    19
+                    20
+                    21
+                    22
+                    23
+                    24
+                    25
+                    26
+                    socket.on( 'disconnect', function ( data ) {
+
+                    // Since we set the _id in the join event, we can use it
+                    // here to lookup the game by its ID.
+                    Game.findById( _id, function( err, game ) {
+
+                    if ( game ) {
+
+                    // Drop out of the game
+                    socket.leave( _room );
+
+                    // Again, multiple players _may_ drop at the same time
+                    // so this needs to be atomic.
+                    Game.findOneAndUpdate(
+                    { '_id': _id, 'players.id': _player },
+                    { $set: { 'players.$.status': 'left', 'players.$.statusDate': Date.now() } },
+                    function( err, game ) {
+
+                    // Notify the other clients the player left the game
+                    io.sockets.in( _room ).emit( 'left' );
+                    }
+                    );
+
+                    }
+                    });
+                    });
+
+
+                    Game Over
+                    At some point the game will be complete. I chose at this point to just disconnect the socket and
+                    have the browser "forget" the game. I offer a button to continue which simply reloads the browser
+                    putting it back to the start state which requests the player to register a new game or join an
+                    existing one. I had originally thought about allowing the existing game to be reset but just decided
+                    it would be better to force a fresh slate - free of any memory leaks or other left over state
+                    information that would just make debugging that much more difficult.
+
+                    Socket.IO really does make building two-way, real-time event-based communication between the browser
+                    and server quite easy. Leveraging that functionality to dynamically generate rooms that can be
+                    utilized in a game takes a little bit of thought and work to properly coordinate the process of
+                    establishing the room and connecting all the members. Using a hybrid approach with a simple REST API
+                    to register players can help alleviate some of the difficulty related to establishing the initial
+                    room identifier.
+                    Posted by Ben Olson at 9:37 PM
+                    Email This
+                    BlogThis!
+                    Share to Twitter
+                    Share to Facebook
+                    Share to Pinterest
+
+                    Labels: games, nodejs, real-time, rooms, socket.io
+
+                    Newer Post Older Post Home
+                    Subscribe to: Post Comments (Atom)
+                    Search This Blog
+
+                    About Me
+                    My Photo
+                    Ben Olson
+
+                    I'm a Full Stack Software Engineer with an interest in data visualization and user interaction. On
+                    my blog, Ben.Knows.Code(), I highlight my adventures discovering the different languages,
+                    frameworks, and patterns that enable building user-friendly, interactive solutions. Through it, I
+                    hope others will find it a useful source of knowledge and inspiration.
+                    View my complete profile
+                    Subscribe
+
+                    Email address ...
+
+
+                    Subscribe in a reader
+
+
+                    Flattr this
+                    Other Popular Posts
+                    Multi-Option Picker using Bootstrap Dropdowns with Checkboxes
+                    Using Bootstrap Dropdown Buttons as a Form Select Box
+                    CSS Rotated Text: Parent Dimensions and Spacing Issues
+                    Resizing Images in the Browser using an HTML Canvas
+                    Dynamically Creating Game Rooms using Socket.IO and NodeJS
+                    Selecting Ranges with the jQuery UI Datepicker
+                    Customize the jQuery UI AutoComplete Drop Down Select Menu
+                    Animating Multiple Elements Simultaneously with jQuery
+                    Detect When a DOM Element is Scrolled into View using jQuery
+                    Create Fly Over Notification Messages with Bootstrap
+                    Recent Posts
+                    Unresponsive Scripts and Javascript's Lack of Sleep
+                    Multi-Option Picker using Bootstrap Dropdowns with Checkboxes
+                    Triggering CSS-Only :hover and :focus Transitions
+                    Caching Ruby Sequel Models to Reduce Object Allocations and Database Load
+                    Learning to Graph with D3
+                    Searching for Patterns when Developing Browser Extensions
+                    State of the Stack: What Javascript Libraries Do You Use?
+                    A Basic Star Rating Bar jQuery Widget
+                    Using CSS3 Transitions to Draw a User's Attention to Change
+                    Newline Madness: Justified HTML Elements Revisited
+                    Topics
+                    javascript jquery jquery ui Backbone css-transform animate animation canvas svg twitter bootstrap
+                    design patterns widgets raphael REST draggable graph plugin collections software-development HTML5
+                    oauth jquerysvg
+                    Archive
+                    ► 2014 (20)
+                    ▼ 2013 (56)
+                    ► December (5)
+                    ► November (4)
+                    ► October (4)
+                    ► September (5)
+                    ▼ August (6)
+                    Dynamically Creating Game Rooms using Socket.IO an...
+                    Create Fly Over Notification Messages with Bootstr...
+                    A Walk-Through of the Backbone.Fiber Demo
+                    Building a Modal Progress Bar with Twitter Bootstr...
+                    Managing URL End-Points in Backbone Models and Col...
+                    Extending BackboneJS to Build Better Web Applicati...
+                    ► July (5)
+                    ► June (5)
+                    ► May (4)
+                    ► April (5)
+                    ► March (3)
+                    ► February (5)
+                    ► January (5)
+                    ► 2012 (49)
+                    Copyright Ben Olson 2012-13. Simple theme. Powered by Blogger.
+                </p>
+            </div>
+            <div id="chat-enter-area">
+                <form>
+                    <div class="form-group">
+                        <input class="form-control" type="text" id="chat-input" placeholder="Enter message">
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
 </body>

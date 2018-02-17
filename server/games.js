@@ -1,5 +1,6 @@
 var auth = require("./auth");
 var schema = require("./schema");
+var chatroom = require("./games/chatroom");
 var sockets = [];
 var io;
 
@@ -159,6 +160,8 @@ function setupGame(id, game, cb) {
                                     new: true
                                 },
                                 function (err, doc) {
+                                    if (err) {throw err}
+                                    sockets[id].emit('update users', doc["users_public"]);
                                     if (doc["user_count"] <= 0) {
                                         schema.Game.findOneAndRemove({game_id: id}).exec();
                                         delete sockets[id];
