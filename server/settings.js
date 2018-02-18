@@ -38,14 +38,14 @@ module.exports.getData = function (id, callback) {
                 {
                     id: "last-login",
                     label: "Last Login",
-                    value: new Date(curUser.lastLogin).toLocaleString(),
+                    value: curUser.lastLogin,
                     validation: false,
                     attributes: "readonly"
                 },
                 {
                     id: "account-created",
                     label: "Account Created",
-                    value: new Date(curUser.created).toLocaleString(),
+                    value: curUser.created,
                     validation: false,
                     attributes: "readonly"
                 },

@@ -16,7 +16,7 @@ module.exports.upsertGoogleUser = function (userData, callback) {
                 source: "google",
                 emailVerified: userData["email_verified"],
                 email: userData["email"],
-                lastLogin: new Date().toISOString()
+                lastLogin: Date.now()
             }
         } else {
             // new user
@@ -30,7 +30,8 @@ module.exports.upsertGoogleUser = function (userData, callback) {
                 emailVerified: userData["email_verified"],
                 email: userData["email"],
                 picURL: userData["picture"],
-                lastLogin: new Date().toISOString()
+                created: Date.now(),
+                lastLogin: Date.now()
             };
         }
         var userID = curUser["_id"];

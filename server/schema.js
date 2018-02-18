@@ -15,8 +15,7 @@ var gameSchema = new Schema({
         required: true
     },
     created: {
-        type: String,
-        default: new Date().toISOString()
+        type: Date,
     },
     user_count: {
         type: Number,
@@ -82,12 +81,10 @@ var userSchema = new Schema({
         required: true
     },
     lastLogin: {
-        type: String,
-        default: new Date().toISOString()
+        type: Date,
     },
     created: {
-        type: String,
-        default: new Date().toISOString()
+        type: Date,
     },
     gameCount: {
         type: Number,
