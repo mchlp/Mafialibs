@@ -184,6 +184,7 @@ app.get('/play/*', auth.isAuthorized, function (req, res) {
 });
 
 app.get('/handlebars/navbar', function (req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
     var data = {};
 
     // get how deep the link of the referrer is and set up the links in the nav bar accordingly
