@@ -1,9 +1,10 @@
 class UserBox extends React.Component {
 
     createBar(user) {
+        var picLink = getURL(user.user_image, 1);
         return (
             <div class="list-group-item d-flex justify-content-between align-items-center">
-                <img class="rounded" src={user.user_image} height="50"/>
+                <img class="rounded" src={picLink} height="50"/>
                 <p class="align-middle text-center m-0">{user.user_name}</p>
             </div>
         );
@@ -33,10 +34,11 @@ class MessageBox extends React.Component {
     }
 
     createMessage(msg) {
+        var picLink = getURL(msg.user_image, 1);
         return (
             <li class="clearfix chat-message-block">
                         <span class="float-left">
-                        <img class="rounded" src={msg.user_image} height="45px"/>
+                        <img class="rounded" src={picLink} height="45px"/>
                         </span>
                 <div class="chat-message-body p-2 rounded">
                     <div class="chat-message-header p-1">
@@ -71,7 +73,7 @@ class MessageBox extends React.Component {
 var msgList = [];
 
 $(document).ready(function () {
-    var socketURL = "/" + window.location.href.match("/.+\\/(.+)$")[1];
+    var socketURL = "/" + window.location.href.match(".+\\/([^\\/]+)(\\/?)$")[1];
     console.log(socketURL);
     var socket = io(socketURL);
 
@@ -80,6 +82,7 @@ $(document).ready(function () {
     });
 
     socket.on('message-to-client', function (msg) {
+        console.log(msg);
         msgList.push(msg);
         updateChatTimes();
         $("#chat-text-area")[0].scrollTop = $("#chat-text-area")[0].scrollHeight;

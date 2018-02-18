@@ -51,8 +51,8 @@ module.exports.createGame = function (gameType, res) {
                     var callback;
                     switch (game["id"]) {
                         case "chatroom":
-                            callback = function (id, socket) {
-                                chatroom.setupChat(id, socket);
+                            callback = function (id, socket, serverSocket) {
+                                chatroom.setupChat(id, socket, serverSocket);
                             };
                             break;
                         default:
@@ -79,16 +79,17 @@ module.exports.createGame = function (gameType, res) {
 
 // redirects user to the game page
 module.exports.startGame = function (url, res) {
-    var match = url.match("/.+\\/(.+)$");
+    var match = url.match(".+\\/([^\\/]+)(\\/?)$")[1];
+    console.log(url);
     schema.Game.findOne({game_id: match}, function (err, found) {
-        console.log(found);
+        if (err) throw err;
         if (found["open"]) {
             switch (found["type"]) {
                 case "chatroom":
-                    res.sendFile("chat.html", {root: __dirname + "/../public/views"});
+                    res.sendFile("games/chat.html", {root: __dirname + "/../public/views"});
                     break;
                 case "mafialibs":
-                    res.sendFile("mafialibs.html", {root: __dirname + "/../public/views"});
+                    res.sendFile("games/mafialibs.html", {root: __dirname + "/../public/views"});
                     break;
                 default:
                     res.redirect("../dashboard")
@@ -192,8 +193,7 @@ function setupGame(id, game, setupGameSpecificSocket, cb) {
                                 }
                             );
                         });
-
-                        setupGameSpecificSocket(id, socket);
+                        setupGameSpecificSocket(id, socket, sockets[id]);
                     });
                 });
             });

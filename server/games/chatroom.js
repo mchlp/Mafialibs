@@ -1,7 +1,7 @@
 
 var schema = require("../schema");
 
-module.exports.setupChat = function(id, socket) {
+module.exports.setupChat = function(id, socket, serverSocket) {
     socket.on('message-to-server', function(msg) {
         schema.Game.findOne({game_id: id}, function(err, doc) {
             if (err) {throw err}
@@ -14,7 +14,8 @@ module.exports.setupChat = function(id, socket) {
                         time: new Date(),
                         text: msg
                     };
-                    socket.emit('message-to-client', sendMsg);
+                    console.log(sendMsg);
+                    serverSocket.emit('message-to-client', sendMsg);
                 }
             }
         });
