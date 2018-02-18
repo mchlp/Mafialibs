@@ -17,6 +17,7 @@ var io = require("socket.io")(server);
 //var http = require('http').Server(app);
 var path = require('path');
 var session = require('cookie-session');
+var fs = require('fs');
 var format = require('util').format;
 var bodyParser = require('body-parser');
 var googleAuth = new require('google-auth-library');
@@ -34,6 +35,15 @@ var mongoose = require('mongoose');
 var url = format("mongodb://%s:%s@%s:%s/%s", DB_USERNAME, DB_PASSWORD, DB_ADDRESS, DB_PORT, DB_DATABASE);
 var hbsHandler = require('./server/hbsHelper');
 hbsHandler.compileTemplates();
+
+// check if dev mode is enabled
+fs.open("devmode", 'r', function(err, fd) {
+    if (err) {
+        var DEV_MODE = false;
+    } else {
+        var DEV_MODE = true;
+    }
+});
 
 var connectedToDB = false;
 mongoose.connect(url);
@@ -70,6 +80,10 @@ app.use(session({
     secret: 'asdfak43*&^%%sdj@',
     maxAge: 0.5 * 60 * 60 * 1000
 }));
+
+app.get('*', function (req, res) {
+    console.log(req.get('host'));
+});
 
 app.get('/', function (req, res) {
     auth.checkAuthorized(req, function (authorized) {
@@ -184,11 +198,14 @@ app.get('/play/*', auth.isAuthorized, function (req, res) {
 });
 
 app.get('/handlebars/navbar', function (req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
     var data = {};
 
     // get how deep the link of the referrer is and set up the links in the nav bar accordingly
-    var origin = req.headers.referer.toString();
+    try {
+        var origin = req.headers.referer.toString();
+    } catch(err) {
+        origin = "";
+    }
     for (var i = 0; i < BASE_URLS.length; i++) {
         origin = origin.replace(BASE_URLS[i], "");
     }

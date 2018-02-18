@@ -13,10 +13,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="google-signin-client_id"
           content="61123325910-bqfncmh15jgfg2o1millsnbd9k3floku.apps.googleusercontent.com">
-
     <script>
-        $(function () {
-            $("#navbar").load("../handlebars/navbar");
+        $(document).ready(function() {
+            $.get("../handlebars/navbar/", function (data) {
+                $("#navbar").replaceWith(data);
+            });
+            return true;
         });
     </script>
 
