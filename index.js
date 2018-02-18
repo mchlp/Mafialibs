@@ -4,6 +4,11 @@ const DB_ADDRESS = "127.0.0.1";
 const DB_PORT = "27017";
 const DB_DATABASE = "mafialibs-db";
 const CLIENT_ID = "61123325910-bqfncmh15jgfg2o1millsnbd9k3floku.apps.googleusercontent.com";
+const BASE_URLS = [
+    "https://mchlp.tk/mafialibs/",
+    "http://mchlp.tk/mafialibs/",
+    "http://localhost:3000/"
+];
 
 var express = require('express');
 var app = express();
@@ -111,7 +116,7 @@ app.post('/loginVerify', function (req, res) {
     }, function (e, login) {
         var userData = login.getPayload();
         if (userData) {
-            users.upsertGoogleUser(userData, function(userToken) {
+            users.upsertGoogleUser(userData, function (userToken) {
                 res.status(200).send({result: 'redirect', token: userToken, url: '../dashboard'});
             });
         }
@@ -133,7 +138,7 @@ app.post('/joinGame', auth.isAuthorized, function (req, res) {
 });
 
 app.post('/createGame', auth.isAuthorized, function (req, res) {
-   games.createGame(req.body.game_type, res);
+    games.createGame(req.body.game_type, res);
 });
 
 app.post('/settingsUpdate', auth.isAuthorized, function (req, res) {
@@ -144,7 +149,7 @@ app.get('/home', function (req, res) {
     res.sendFile(__dirname + "/public/views/home.html");
 });
 
-app.get('/error', function(req, res) {
+app.get('/error', function (req, res) {
     res.sendFile(__dirname + "/public/views/error.html");
 });
 
@@ -169,17 +174,33 @@ app.get('/dashboard', auth.isAuthorized, function (req, res) {
 });
 
 app.get('/settings', auth.isAuthorized, function (req, res) {
-    settings.getData(res.locals.id, function(data) {
+    settings.getData(res.locals.id, function (data) {
         res.send(hbsHandler.export("settings", data));
     });
 });
 
-app.get('/play/*', auth.isAuthorized, function(req, res) {
+app.get('/play/*', auth.isAuthorized, function (req, res) {
     games.startGame(req.url, res);
 });
 
 app.get('/handlebars/navbar', function (req, res) {
     var data = {};
+
+    // get how deep the link of the referrer is and set up the links in the nav bar accordingly
+    var origin = req.headers.referer.toString();
+    for (var i = 0; i < BASE_URLS.length; i++) {
+        origin = origin.replace(BASE_URLS[i], "");
+    }
+    if (origin.charAt(origin.length-1) == '/') {
+        origin = origin.substr(0, origin.length-1);
+    }
+    var level = (origin.match(/\//g)||[]).length;
+    console.log(origin + " " + level);
+    data["baseurl"] = "../";
+    for (var i=0; i<level; i++) {
+        data["baseurl"] = "../" + data["baseurl"];
+    }
+    console.log(data["baseurl"]);
     auth.checkAuthorized(req, function (loggedin) {
         data["loggedin"] = loggedin;
         res.send(hbsHandler.export("navBar", data));

@@ -14,7 +14,6 @@ module.exports.setupChat = function(id, socket, serverSocket) {
                         time: new Date(),
                         text: msg
                     };
-                    console.log(sendMsg);
                     serverSocket.emit('message-to-client', sendMsg);
                 }
             }

@@ -82,7 +82,6 @@ $(document).ready(function () {
     });
 
     socket.on('message-to-client', function (msg) {
-        console.log(msg);
         msgList.push(msg);
         updateChatTimes();
         $("#chat-text-area")[0].scrollTop = $("#chat-text-area")[0].scrollHeight;

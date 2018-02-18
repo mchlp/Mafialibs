@@ -80,7 +80,6 @@ module.exports.createGame = function (gameType, res) {
 // redirects user to the game page
 module.exports.startGame = function (url, res) {
     var match = url.match(".+\\/([^\\/]+)(\\/?)$")[1];
-    console.log(url);
     schema.Game.findOne({game_id: match}, function (err, found) {
         if (err) throw err;
         if (found["open"]) {

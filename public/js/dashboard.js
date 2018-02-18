@@ -1,7 +1,7 @@
 
 $(document).ready(function () {
     $("#game-join-form")[0].addEventListener('submit', function(event) {
-        var gameID = $("#game-id").val();
+        var gameID = $("#game-id").val().trim();
         joinGame(gameID);
     });
     $("#game-create-form")[0].addEventListener('submit', function(event) {
