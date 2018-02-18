@@ -18,6 +18,7 @@ var io = require("socket.io")(server);
 var path = require('path');
 var session = require('cookie-session');
 var fs = require('fs');
+var httpsRedirect = require('express-https-redirect');
 var format = require('util').format;
 var bodyParser = require('body-parser');
 var googleAuth = new require('google-auth-library');
@@ -37,7 +38,7 @@ var hbsHandler = require('./server/hbsHelper');
 hbsHandler.compileTemplates();
 
 // check if dev mode is enabled
-fs.open("devmode", 'r', function(err, fd) {
+fs.open("devmode", 'r', function(err) {
     if (err) {
         var DEV_MODE = false;
     } else {
@@ -75,15 +76,13 @@ app.use(bodyParser.urlencoded({limit: '60mb', extended: true}));
 
 app.use(cookieParser());
 
+app.use(httpsRedirect());
+
 app.use(session({
     name: 'session',
     secret: 'asdfak43*&^%%sdj@',
     maxAge: 0.5 * 60 * 60 * 1000
 }));
-
-app.get('*', function (req, res) {
-    console.log(req.get('host'));
-});
 
 app.get('/', function (req, res) {
     auth.checkAuthorized(req, function (authorized) {
