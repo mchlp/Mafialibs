@@ -78,6 +78,7 @@ $(document).ready(function () {
     var socket = io(socketURL);
 
     socket.on('update-users', function (msg) {
+        console.log("UPDATE USERS " + msg);
         ReactDOM.render(<UserBox users={msg}/>, document.getElementById("user-list"));
     });
 

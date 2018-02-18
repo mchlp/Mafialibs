@@ -15,6 +15,7 @@ module.exports.setupChat = function(id, socket, serverSocket) {
                         text: msg
                     };
                     serverSocket.emit('message-to-client', sendMsg);
+                    break;
                 }
             }
         });

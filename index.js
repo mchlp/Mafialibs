@@ -195,12 +195,10 @@ app.get('/handlebars/navbar', function (req, res) {
         origin = origin.substr(0, origin.length-1);
     }
     var level = (origin.match(/\//g)||[]).length;
-    console.log(origin + " " + level);
     data["baseurl"] = "../";
     for (var i=0; i<level; i++) {
         data["baseurl"] = "../" + data["baseurl"];
     }
-    console.log(data["baseurl"]);
     auth.checkAuthorized(req, function (loggedin) {
         data["loggedin"] = loggedin;
         res.send(hbsHandler.export("navBar", data));

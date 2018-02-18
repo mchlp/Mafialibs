@@ -184,7 +184,7 @@ function setupGame(id, game, setupGameSpecificSocket, cb) {
                                     if (err) {
                                         throw err
                                     }
-                                    sockets[id].emit('update users', doc["users_public"]);
+                                    sockets[id].emit('update-users', doc["users_public"]);
                                     if (doc["user_count"] <= 0) {
                                         schema.Game.findOneAndRemove({game_id: id}).exec();
                                         delete sockets[id];
