@@ -31,7 +31,8 @@ module.exports.upsertGoogleUser = function (userData, callback) {
                 email: userData["email"],
                 picURL: userData["picture"],
                 created: Date.now(),
-                lastLogin: Date.now()
+                lastLogin: Date.now(),
+                game_count: 0
             };
         }
         var userID = curUser["_id"];

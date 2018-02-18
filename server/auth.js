@@ -37,7 +37,7 @@ module.exports.getTokenInfo = function(c, cb) {
             }
         })
     }
-}
+};
 
 module.exports.checkAuthorized = function(req, callback) {
     var token =  req.cookies["token"];

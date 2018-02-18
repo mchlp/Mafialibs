@@ -62,7 +62,7 @@ module.exports.createGame = function (gameType, res) {
                             })
                             return;
                     }
-                    setupGame(id, game, callback, function() {
+                    setupGame(id, game, callback, function () {
                         module.exports.joinGame(id, res);
                     });
                 } else {
@@ -149,6 +149,15 @@ function setupGame(id, game, setupGameSpecificSocket, cb) {
                                 new: true
                             },
                             function (err, doc) {
+                                schema.User.findOneAndUpdate(
+                                    {
+                                        _id: data["id"]
+                                    },
+                                    {
+                                        $inc: {
+                                            game_count: 1
+                                        }
+                                    }).exec();
                                 if (err) {
                                     throw err
                                 }

@@ -86,7 +86,7 @@ var userSchema = new Schema({
     created: {
         type: Date,
     },
-    gameCount: {
+    game_count: {
         type: Number,
         default: 0
     }
