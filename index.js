@@ -18,7 +18,6 @@ var io = require("socket.io")(server);
 var path = require('path');
 var session = require('cookie-session');
 var fs = require('fs');
-var httpsRedirect = require('express-https-redirect');
 var format = require('util').format;
 var bodyParser = require('body-parser');
 var googleAuth = new require('google-auth-library');
@@ -75,8 +74,6 @@ app.use(bodyParser.json({limit: '60mb'}));
 app.use(bodyParser.urlencoded({limit: '60mb', extended: true}));
 
 app.use(cookieParser());
-
-app.use(httpsRedirect());
 
 app.use(session({
     name: 'session',
