@@ -1,3 +1,10 @@
+
+const DEV_MODE = false;
+
+$(document).ready(function() {
+   $("#login-form")[0].addEventListener('submit', logInSubmit);
+});
+
 function onSuccess(googleUser) {
     var token = googleUser.getAuthResponse().id_token;
     $.ajax({
@@ -9,9 +16,7 @@ function onSuccess(googleUser) {
         success: function (res) {
             if (res.result === 'redirect') {
                 document.cookie = "token=" + res.token + "; path=/;";
-                setTimeout(function () {
-                    window.location.replace(res.url)
-                }, 1000);
+                window.location.replace(res.url);
             }
         },
         dataType: "json"
@@ -32,4 +37,22 @@ function renderButton() {
         'onsuccess': onSuccess,
         'onfailure': onFailure
     });
+}
+
+function logInSubmit(event) {
+    var valid = true;
+    if (!$("#login-form")[0].checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+        valid = false;
+    }
+    if (!DEV_MODE) {
+        if (window.location.protocol !== "https:") {
+            $("#alert").val("You are using an inse")
+        }
+    }
+    $("#login-form").addClass("was-validated");
+    if (valid) {
+        alert("VALID FORM!")
+    }
 }

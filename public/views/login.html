@@ -11,10 +11,11 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="google-signin-client_id" content="61123325910-bqfncmh15jgfg2o1millsnbd9k3floku.apps.googleusercontent.com">
+    <meta name="google-signin-client_id"
+          content="61123325910-bqfncmh15jgfg2o1millsnbd9k3floku.apps.googleusercontent.com">
 
     <script>
-        $(function() {
+        $(function () {
             $("#navbar").load("../handlebars/navbar");
         });
     </script>
@@ -24,11 +25,38 @@
 
 <div id="navbar"></div>
 
-<div class="container text-center">
+<div class="container justify-content-center align-content-center text-center">
     <div class="mt-5">
-        <p>Log in using your Google account.</p>
+        <h1>Log In</h1>
+    </div>
+    <div class="mt-5 col-md-6 col-sm-12 offset-md-3">
+        <div class="alert alert-danger d-none" id="invalid-cred-alert" role="alert">
+            Incorrect username or password entered.
+        </div>
+        <div class="alert alert-danger d-none" id="insecure-alert" role="alert">
+            You are using an insecure version of this iste.
+        </div>
+        <form class="needs-validation" id="login-form" novalidate>
+            <div class="form-group">
+                <label for="username-input">Username</label>
+                <input type="text" class="form-control" id="username-input" placeholder="Enter Username" required>
+                <div class="invalid-feedback">
+                    Please provide a username.
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="password-input">Password</label>
+                <input type="password" class="form-control" id="password-input" placeholder="Enter Password" required>
+                <div class="invalid-feedback">
+                    Please enter a password.
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Log In</button>
+        </form>
     </div>
     <br/>
+    <p>Don't have an account? <a href="#">Register.</a></p>
+    <p>Or sign in with your Google account.</p>
     <div id="my-signin2"></div>
 </div>
 
