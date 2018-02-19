@@ -69,6 +69,7 @@ process.on('SIGINT', function () {
 });
 
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/favicon.ico', express.static(path.join(__dirname, 'public/res/favicon.ico')));
 
 app.use(bodyParser.json({limit: '60mb'}));
 app.use(bodyParser.urlencoded({limit: '60mb', extended: true}));
