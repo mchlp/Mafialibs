@@ -2,16 +2,16 @@
     font-family: Roboto;
 }
 
-.bg-custom {
-    background-color: #373f43;
-}
-
-#my-signin2{
+.g-signin2{
     width: 100%;
 }
 
-#my-signin2 > div {
+.g-signin2 > div{
     margin: 0 auto;
+}
+
+.bg-custom {
+    background-color: #373f43;
 }
 
 .form-control[readonly] {

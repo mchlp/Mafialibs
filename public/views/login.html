@@ -15,7 +15,7 @@
     <meta name="google-signin-client_id"
           content="61123325910-bqfncmh15jgfg2o1millsnbd9k3floku.apps.googleusercontent.com">
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             $.get("../handlebars/navbar/", function (data) {
                 $("#navbar").replaceWith(data);
             });
@@ -60,7 +60,8 @@
     <br/>
     <p>Don't have an account? <a href="../register">Register.</a></p>
     <p>Or sign in with your Google account.</p>
-    <div id="my-signin2"></div>
+    <div class="g-signin2" data-onsuccess="onSuccess"
+         data-theme="dark"></div>
 </div>
 
 </body>
