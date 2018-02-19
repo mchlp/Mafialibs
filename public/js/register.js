@@ -1,9 +1,7 @@
 
-
 const VALID_USERNAME = /^\w{1,16}$/;
 const VALID_EMAIL = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const VALID_PASSWORD = /^\S{6,32}$/;
-
 
 $(document).ready(function () {
     $("#register-form")[0].addEventListener('submit', registerSubmit);
@@ -43,9 +41,23 @@ function usernameChange() {
 function emailChange() {
     let email = $("#email-input").val().trim();
     if (!VALID_EMAIL.test(email)) {
+        $("#email-feedback").text("Please provide a valid email.");
         setValidStatus($("#email-input"), false);
     } else {
-        setValidStatus($("#email-input"), true);
+        $.ajax({
+            type: "POST",
+            url: "../verifyInfo/",
+            data: {field: "email", data: email},
+            success: function (res) {
+                if (res.taken) {
+                    setValidStatus($("#email-input"), false);
+                    $("#email-feedback").text("That email is already taken.");
+                } else {
+                    setValidStatus($("#email-input"), true);
+                }
+            },
+            dataType: "json"
+        })
     }
 }
 
@@ -105,13 +117,14 @@ function registerSubmit(event) {
     }
 
     if (valid) {
+        var hash = sha256($("#username-input").val().trim().toLowerCase()+$('#password-input').val().trim());
         $.ajax({
             type: "POST",
             url: "./register/",
             data: {
-                username: $("#username-input").val().trim(),
+                username: $("#username-input").val().trim().toLowerCase(),
                 email: $("#email-input").val().trim(),
-                password: $("#password-input").val().trim()
+                password: hash
             },
             success: function (res) {
                 var status = res.status;

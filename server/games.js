@@ -179,10 +179,10 @@ function setupGame(id, game, setupGameSpecificSocket, cb) {
                                     },
                                     $pull: {
                                         users_public: {
-                                            user_id: data["user_id"]
+                                            user_id: data["id"]
                                         },
                                         users_secret: {
-                                            user_id: data["user_id"]
+                                            user_id: data["id"]
                                         }
                                     }
                                 },

@@ -116,20 +116,38 @@ app.get('/list/games', function (req, res) {
 });
 
 app.post('/loginVerify', function (req, res) {
-    client.verifyIdToken({
-        idToken: req.body.token,
-        audience: CLIENT_ID
-    }, function (e, login) {
-        var userData = login.getPayload();
-        if (userData) {
-            users.upsertGoogleUser(userData, function (userToken) {
-                res.status(200).send({result: 'redirect', token: userToken, url: '../dashboard'});
+    switch (req.body.type) {
+        case "google":
+            client.verifyIdToken({
+                idToken: req.body.token,
+                audience: CLIENT_ID
+            }, function (e, login) {
+                var userData = login.getPayload();
+                if (userData) {
+                    users.upsertGoogleUser(userData, function (userToken) {
+                        res.status(200).json({result: 'redirect', token: userToken, url: '../dashboard'});
+                    });
+                }
+                else {
+                    res.status(200).json({result: 'redirect', url: '../login'});
+                }
             });
-        }
-        else {
+            break;
+        case "local":
+            users.loginUser(req.body, function (result) {
+                if (result["status"] === "success") {
+                    res.status(200).json({result: 'redirect', token: result.token, url: '../dashboard'});
+                } else if (result["status"] === "invalid") {
+                    res.send({result: 'invalid'});
+                } else {
+                    res.json({result: 'error'});
+                }
+            });
+            break;
+        default:
             res.status(200).send({result: 'redirect', url: '../login'});
-        }
-    });
+            break;
+    }
 });
 
 app.post('/verifyInfo', function (req, res) {
@@ -185,7 +203,13 @@ app.get('/register', function (req, res) {
 });
 
 app.get('/login', function (req, res) {
-    res.sendFile(__dirname + "/public/views/login.html");
+    auth.checkAuthorized(req, function (authorized) {
+        if (authorized) {
+            res.redirect("../");
+        } else {
+            res.sendFile(__dirname + "/public/views/login.html");
+        }
+    });
 });
 
 app.get('/logout', function (req, res) {

@@ -21,6 +21,8 @@
     "mongoose": "latest",
     "server": "^1.1.0-alpha.1",
     "socket.io": "^2.0.4",
-    "express": "latest"
+    "express": "latest",
+    "uuid": "latest",
+    "bcryptjs": "latest"
   }
 }

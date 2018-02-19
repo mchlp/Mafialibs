@@ -89,6 +89,12 @@ var userSchema = new Schema({
     game_count: {
         type: Number,
         default: 0
+    },
+    password: {
+        type: String
+    },
+    salt: {
+        type: String
     }
 });
 

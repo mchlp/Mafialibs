@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="../lib/bootstrap.min.css">
     <script src="../lib/jquery-3.3.1.min.js"></script>
     <script src="../lib/bootstrap.min.js"></script>
+    <script src="../lib/js-sha256.js"></script>
     <script src="../js/register.js"></script>
     <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
     <meta charset="utf-8">
@@ -41,7 +42,7 @@
             <div class="form-group">
                 <label for="email-input">Email</label>
                 <input type="email" class="form-control needs-custom-validation" id="email-input" placeholder="Enter Email" required>
-                <div class="invalid-feedback">
+                <div class="invalid-feedback" id="email-feedback">
                     Please provide a valid email.
                 </div>
             </div>
