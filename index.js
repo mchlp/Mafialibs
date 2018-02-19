@@ -153,8 +153,8 @@ app.post('/loginVerify', function (req, res) {
 app.post('/verifyInfo', function (req, res) {
     var data = req.body.data;
     switch (req.body.field) {
-        case "displayname":
-            schema.User.find({displayName: data}).limit(1).count().exec(function (err, found) {
+        case "username":
+            schema.User.find({username: data}).limit(1).count().exec(function (err, found) {
                 res.json({taken: found > 0});
             });
             break;

@@ -49,7 +49,7 @@ function logInSubmit(event) {
     if (valid) {
         $("#invalid-cred-alert").addClass("d-none");
         $("#error-alert-alert").addClass("d-none");
-        var hash = sha256($("#username-input").val().trim().toLowerCase()+$('#password-input').val().trim());
+        var hash = sha256($('#password-input').val().trim());
         $.ajax({
             type: "POST",
             url: "../loginVerify/",

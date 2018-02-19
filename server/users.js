@@ -11,10 +11,10 @@ module.exports.createUser = function (userData, callback) {
 
     schema.User.create({
         user_id: uuidv4(),
-        firstName: userData["username"],
-        lastName: "",
-        fullName: userData["username"],
-        displayName: userData["username"],
+        firstName: userData["firstName"],
+        lastName: userData["lastName"],
+        fullName: userData["fistName"] + " " + userData["lastName"],
+        username: userData["username"],
         source: "local",
         emailVerified: false,
         email: userData["email"],
@@ -35,7 +35,7 @@ module.exports.createUser = function (userData, callback) {
 };
 
 module.exports.loginUser = function (userData, callback) {
-    schema.User.findOne({displayName: userData["username"]}, function(err, found) {
+    schema.User.findOne({username: userData["username"]}, function(err, found) {
         if (err) {
             callback({status:"error"});
             throw err;
@@ -49,7 +49,7 @@ module.exports.loginUser = function (userData, callback) {
                     updatedInfo = {
                         lastLogin: Date.now(),
                     };
-                    schema.User.findOneAndUpdate({displayName: userData["username"]}, updatedInfo, {new: true}, function(err, found) {
+                    schema.User.findOneAndUpdate({username: userData["username"]}, updatedInfo, {new: true}, function(err, found) {
                         if (err) {
                             callback({status: "error"});
                             throw err;
@@ -91,7 +91,7 @@ module.exports.upsertGoogleUser = function (userData, callback) {
                 user_id: "google_" + userData["sub"],
                 firstName: userData["given_name"],
                 lastName: userData["family_name"],
-                displayName: userData["given_name"],
+                username: userData["given_name"],
                 fullName: userData["name"],
                 source: "google",
                 emailVerified: userData["email_verified"],

@@ -55,7 +55,7 @@ module.exports.getToken = function getToken(data) {
     var token = jwt.sign({
         exp: Math.floor(Date.now() / 1000) + (TOKEN_EXPIRY_LENGTH),
         id: data["user_id"],
-        name: data["displayName"]
+        name: data["username"]
     }, TOKEN_SECRET);
     return token;
 };

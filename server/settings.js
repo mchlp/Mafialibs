@@ -22,9 +22,9 @@ module.exports.getData = function (id, callback) {
                     attributes: "readonly"
                 },
                 {
-                    id: "display-name",
-                    label: "Display Name",
-                    value: curUser.displayName,
+                    id: "username",
+                    label: "Username",
+                    value: curUser.username,
                     validation: true,
                     attributes: ""
                 },
@@ -75,7 +75,8 @@ module.exports.update = function (data, res) {
         });
         newData["picURL"] =  "../" + newImageLink;
     }
-    newData["displayName"] = data.display_name;
+    newData["username"] = data.username;
+    newData["userName"] =
     users.updateDetails(userID, newData, function(success) {
         if (success) {
             res.json({status: "success"});

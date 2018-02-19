@@ -43,10 +43,10 @@ $(document).ready(function() {
         })
     });
 
-    orignalName = $('#display-name').val();
+    orignalName = $('#username').val();
 
-    $('#display-name').change(updateDisplayName);
-    updateDisplayName();
+    $('#username').change(updateUsername);
+    updateUsername();
 
     $('#profile-pic-input').change(updateProfilePic);
 });
@@ -68,26 +68,26 @@ function updateProfilePic() {
     }
 }
 
-function updateDisplayName() {
-    var curName = $('#display-name').val();
+function updateUsername() {
+    var curName = $('#username').val();
     if (curName === orignalName) {
-        $('#display-name').addClass('custom-validated').addClass("is-valid").removeClass("is-invalid");
-        $('#display-name-feedback').addClass("valid-feedback").removeClass("invalid-feedback").text("Looks good!");
+        $('#username').addClass('custom-validated').addClass("is-valid").removeClass("is-invalid");
+        $('#username-feedback').addClass("valid-feedback").removeClass("invalid-feedback").text("Looks good!");
     } else if (curName.match(" ") != null) {
-        $('#display-name').removeClass('custom-validated').removeClass("is-valid").addClass("is-invalid");
-        $('#display-name-feedback').removeClass("valid-feedback").addClass("invalid-feedback").text("You cannot have spaces in your display name.");
+        $('#username').removeClass('custom-validated').removeClass("is-valid").addClass("is-invalid");
+        $('#username-feedback').removeClass("valid-feedback").addClass("invalid-feedback").text("You cannot have spaces in your username.");
     } else {
         $.ajax({
             type: "POST",
             url: "../verifyInfo/",
-            data: {field: "displayname", data: $('#display-name').val()},
+            data: {field: "username", data: $('#username').val()},
             success: function (res) {
                 if (res.taken) {
-                    $('#display-name').removeClass('custom-validated').removeClass("is-valid").addClass("is-invalid");
-                    $('#display-name-feedback').removeClass("valid-feedback").addClass("invalid-feedback").text("That display name is already taken.");
+                    $('#username').removeClass('custom-validated').removeClass("is-valid").addClass("is-invalid");
+                    $('#username-feedback').removeClass("valid-feedback").addClass("invalid-feedback").text("That username is already taken.");
                 } else {
-                    $('#display-name').addClass('custom-validated').addClass("is-valid").removeClass("is-invalid");
-                    $('#display-name-feedback').addClass("valid-feedback").removeClass("invalid-feedback").text("Looks good!");
+                    $('#username').addClass('custom-validated').addClass("is-valid").removeClass("is-invalid");
+                    $('#username-feedback').addClass("valid-feedback").removeClass("invalid-feedback").text("Looks good!");
                 }
             },
             dataType: "json"
@@ -116,7 +116,7 @@ function updateSettings() {
                 type: "POST",
                 url: "../settingsUpdate/",
                 data: {
-                    display_name: $("#display-name").val(),
+                    username: $("#username").val(),
                     image: imageData
                 },
                 success: function (res) {

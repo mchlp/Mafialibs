@@ -65,7 +65,7 @@ var userSchema = new Schema({
     username: {
         type: String
     },
-    displayName: {
+    username: {
         type: String
     },
     emailVerified: {

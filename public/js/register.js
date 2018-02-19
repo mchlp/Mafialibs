@@ -2,15 +2,44 @@
 const VALID_USERNAME = /^\w{1,16}$/;
 const VALID_EMAIL = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const VALID_PASSWORD = /^\S{6,32}$/;
+const VALID_NAME = /^[a-zA-Z]{1,20}$/;
 
 $(document).ready(function () {
     $("#register-form")[0].addEventListener('submit', registerSubmit);
+    $("#firstname-input").change(firstnameChange);
+    $("#lastname-input").change(lastnameChange);
     $("#username-input").change(usernameChange);
     $("#email-input").change(emailChange);
     $("#password-input").change(passwordChange);
     $("#password-confirm-input").change(passwordConfirmChange);
 
 });
+
+function firstnameChange() {
+    let firstname = $('#firstname-input').val().trim();
+    if (firstname === "") {
+        $("#firstname-feedback").text("Please provide a first name.");
+        setValidStatus($("#firstname-input"), false);
+    } else if (!VALID_NAME.test(firstname)) {
+        $("#firstname-feedback").text("Your first name can only contain letters and must be between 1 and 20 characters long.");
+        setValidStatus($("#firstname-input"), false);
+    } else {
+        setValidStatus($("#firstname-input"), true)
+    }
+}
+
+function lastnameChange() {
+    let lastname = $('#lastname-input').val().trim();
+    if (lastname === "") {
+        $("#lastname-feedback").text("Please provide a last name.");
+        setValidStatus($("#lastname-input"), false);
+    } else if (!VALID_NAME.test(lastname)) {
+        $("#lastname-feedback").text("Your lastname name can only contain letters and must be between 1 and 20 characters long.");
+        setValidStatus($("#lastname-input"), false);
+    } else {
+        setValidStatus($("#lastname-input"), true)
+    }
+}
 
 function usernameChange() {
     let username = $('#username-input').val().trim();
@@ -24,7 +53,7 @@ function usernameChange() {
             $.ajax({
             type: "POST",
             url: "../verifyInfo/",
-            data: {field: "displayname", data: username},
+            data: {field: "username", data: username},
             success: function (res) {
                 if (res.taken) {
                     setValidStatus($("#username-input"), false);
@@ -72,6 +101,7 @@ function passwordChange() {
     } else {
         setValidStatus($("#password-input"), true)
     }
+    passwordConfirmChange();
 }
 
 function passwordConfirmChange() {
@@ -95,6 +125,8 @@ function registerSubmit(event) {
 
     var valid = true;
 
+    firstnameChange();
+    lastnameChange();
     usernameChange();
     emailChange();
     passwordChange();
@@ -117,11 +149,13 @@ function registerSubmit(event) {
     }
 
     if (valid) {
-        var hash = sha256($("#username-input").val().trim().toLowerCase()+$('#password-input').val().trim());
+        var hash = sha256($('#password-input').val().trim());
         $.ajax({
             type: "POST",
             url: "./register/",
             data: {
+                firstName: $("#firstname-input").val().trim(),
+                lastName: $("#lastname-input").val().trim(),
                 username: $("#username-input").val().trim().toLowerCase(),
                 email: $("#email-input").val().trim(),
                 password: hash
