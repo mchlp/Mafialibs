@@ -65,9 +65,6 @@ var userSchema = new Schema({
     username: {
         type: String
     },
-    username: {
-        type: String
-    },
     emailVerified: {
         type: Boolean,
         required: true
@@ -76,7 +73,7 @@ var userSchema = new Schema({
         type: String,
         required: true
     },
-    picURL: {
+    pic_url: {
         type: String,
         required: true
     },

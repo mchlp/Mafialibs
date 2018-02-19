@@ -121,7 +121,7 @@ function setupGame(id, game, setupGameSpecificSocket, cb) {
                             throw err
                         }
 
-                        var imageURL = doc["picURL"];
+                        var imageURL = doc["pic_url"];
 
                         schema.Game.findOneAndUpdate(
                             {

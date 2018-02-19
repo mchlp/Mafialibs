@@ -5,7 +5,7 @@ var jimp = require('jimp');
 module.exports.getData = function (id, callback) {
     schema.User.findOne({user_id: id}, function (err, curUser) {
         var userData = {
-            image: curUser.picURL,
+            image: curUser.pic_url,
             fields: [
                 {
                     id: "first-name",
@@ -50,9 +50,9 @@ module.exports.getData = function (id, callback) {
                     attributes: "readonly"
                 },
                 {
-                    id: "numGames",
+                    id: "num-games",
                     label: "Number of Games Played",
-                    value: curUser.gameCount,
+                    value: curUser.game_count,
                     validation: false,
                     attributes: "readonly"
                 }
@@ -73,7 +73,7 @@ module.exports.update = function (data, res) {
             image.resize(100, 100)
                 .write("./public/" + newImageLink);
         });
-        newData["picURL"] =  "../" + newImageLink;
+        newData["pic_url"] =  "../" + newImageLink;
     }
     newData["username"] = data.username;
     newData["userName"] =
