@@ -152,7 +152,7 @@ function registerSubmit(event) {
         var hash = sha256($('#password-input').val().trim());
         $.ajax({
             type: "POST",
-            url: "./register/",
+            url: "../register/",
             data: {
                 firstName: $("#firstname-input").val().trim(),
                 lastName: $("#lastname-input").val().trim(),
