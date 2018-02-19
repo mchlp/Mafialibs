@@ -115,7 +115,7 @@ function setupGame(id, game, setupGameSpecificSocket, cb) {
 
                 auth.getTokenInfo(socket.handshake.headers.cookie, function (data) {
 
-                    schema.User.findOne({_id: data["id"]}, function (err, doc) {
+                    schema.User.findOne({user_id: data["id"]}, function (err, doc) {
 
                         if (err) {
                             throw err
@@ -151,7 +151,7 @@ function setupGame(id, game, setupGameSpecificSocket, cb) {
                             function (err, doc) {
                                 schema.User.findOneAndUpdate(
                                     {
-                                        _id: data["id"]
+                                        user_id: data["id"]
                                     },
                                     {
                                         $inc: {
@@ -179,10 +179,10 @@ function setupGame(id, game, setupGameSpecificSocket, cb) {
                                     },
                                     $pull: {
                                         users_public: {
-                                            user_id: data["id"]
+                                            user_id: data["user_id"]
                                         },
                                         users_secret: {
-                                            user_id: data["id"]
+                                            user_id: data["user_id"]
                                         }
                                     }
                                 },

@@ -1,6 +1,4 @@
 
-const DEV_MODE = false;
-
 $(document).ready(function() {
    $("#login-form")[0].addEventListener('submit', logInSubmit);
 });
@@ -45,11 +43,6 @@ function logInSubmit(event) {
         event.preventDefault();
         event.stopPropagation();
         valid = false;
-    }
-    if (!DEV_MODE) {
-        if (window.location.protocol !== "https:") {
-            $("#alert").val("You are using an inse")
-        }
     }
     $("#login-form").addClass("was-validated");
     if (valid) {

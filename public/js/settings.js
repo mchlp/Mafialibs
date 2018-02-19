@@ -79,8 +79,8 @@ function updateDisplayName() {
     } else {
         $.ajax({
             type: "POST",
-            url: "../displayNameVerify/",
-            data: {"name": $('#display-name').val()},
+            url: "../verifyInfo/",
+            data: {field: "displayname", data: $('#display-name').val()},
             success: function (res) {
                 if (res.taken) {
                     $('#display-name').removeClass('custom-validated').removeClass("is-valid").addClass("is-invalid");

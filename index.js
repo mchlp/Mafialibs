@@ -37,7 +37,7 @@ var hbsHandler = require('./server/hbsHelper');
 hbsHandler.compileTemplates();
 
 // check if dev mode is enabled
-fs.open("devmode", 'r', function(err) {
+fs.open("devmode", 'r', function (err) {
     if (err) {
         var DEV_MODE = false;
     } else {
@@ -115,10 +115,6 @@ app.get('/list/games', function (req, res) {
     });
 });
 
-app.get('/loginVerify', function (req, res) {
-    res.send("verify login");
-});
-
 app.post('/loginVerify', function (req, res) {
     client.verifyIdToken({
         idToken: req.body.token,
@@ -136,11 +132,28 @@ app.post('/loginVerify', function (req, res) {
     });
 });
 
-app.post('/displayNameVerify', function (req, res) {
-    var searchName = req.body.name;
-    schema.User.find({displayName: searchName}).limit(1).count().exec(function (err, found) {
-        res.json({taken: found > 0});
-    })
+app.post('/verifyInfo', function (req, res) {
+    var data = req.body.data;
+    switch (req.body.field) {
+        case "displayname":
+            schema.User.find({displayName: data}).limit(1).count().exec(function (err, found) {
+                res.json({taken: found > 0});
+            });
+            break;
+        case "email":
+            schema.User.find({email: data}).limit(1).count().exec(function (err, found) {
+                res.json({taken: found > 0});
+            });
+            break;
+        default:
+            res.json({taken: NaN});
+    }
+});
+
+app.post('/register', function (req, res) {
+    users.createUser(req.body, function (result) {
+        res.json(result);
+    });
 });
 
 app.post('/joinGame', auth.isAuthorized, function (req, res) {
@@ -165,6 +178,10 @@ app.get('/error', function (req, res) {
 
 app.get('/about', function (req, res) {
     res.sendFile(__dirname + "/public/views/about.html");
+});
+
+app.get('/register', function (req, res) {
+    res.sendFile(__dirname + "/public/views/register.html");
 });
 
 app.get('/login', function (req, res) {
@@ -195,22 +212,23 @@ app.get('/play/*', auth.isAuthorized, function (req, res) {
 
 app.get('/handlebars/navbar', function (req, res) {
     var data = {};
+    var origin = "";
 
     // get how deep the link of the referrer is and set up the links in the nav bar accordingly
     try {
-        var origin = req.headers.referer.toString();
-    } catch(err) {
+        origin = req.headers.referer.toString();
+    } catch (err) {
         origin = "";
     }
     for (var i = 0; i < BASE_URLS.length; i++) {
         origin = origin.replace(BASE_URLS[i], "");
     }
-    if (origin.charAt(origin.length-1) == '/') {
-        origin = origin.substr(0, origin.length-1);
+    if (origin.charAt(origin.length - 1) === '/') {
+        origin = origin.substr(0, origin.length - 1);
     }
-    var level = (origin.match(/\//g)||[]).length;
+    var level = (origin.match(/\//g) || []).length;
     data["baseurl"] = "../";
-    for (var i=0; i<level; i++) {
+    for (var i = 0; i < level; i++) {
         data["baseurl"] = "../" + data["baseurl"];
     }
     auth.checkAuthorized(req, function (loggedin) {

@@ -54,7 +54,7 @@ module.exports.checkAuthorized = function(req, callback) {
 module.exports.getToken = function getToken(data) {
     var token = jwt.sign({
         exp: Math.floor(Date.now() / 1000) + (TOKEN_EXPIRY_LENGTH),
-        id: data["_id"],
+        id: data["user_id"],
         name: data["displayName"]
     }, TOKEN_SECRET);
     return token;

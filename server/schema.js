@@ -39,7 +39,7 @@ var gameSchema = new Schema({
 });
 
 var userSchema = new Schema({
-    _id: {
+    user_id: {
         type: String,
         required: true
     },
