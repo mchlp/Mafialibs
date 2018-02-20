@@ -1,6 +1,7 @@
 var schema = require("./schema");
 var users = require('./users');
 var jimp = require('jimp');
+var bcrypt = require('bcryptjs');
 
 module.exports.getData = function (id, callback) {
     schema.User.findOne({user_id: id}, function (err, curUser) {
@@ -90,6 +91,32 @@ module.exports.update = function (data, res) {
             res.json({status: "success"});
         } else {
             res.json({status: "failed"})
+        }
+    });
+};
+
+module.exports.updatePassword = function(data, res) {
+    var userID = res.locals.id;
+    users.verifyUser(userID, data.old, function(result) {
+        if (result.status === "success") {
+            var password = data.new;
+            var salt = bcrypt.genSaltSync(10);
+            var hash = bcrypt.hashSync(password, salt);
+            newData = {
+                salt: salt,
+                password: hash
+            };
+            users.updateDetails(userID, newData, function(success) {
+                if (success) {
+                    res.json({result: "redirect", url: "../logout"});
+                } else {
+                    res.json({result: "error"});
+                }
+            })
+        } else if (result.status === "invalid") {
+            res.json({result: "invalid"});
+        } else {
+            res.json({result: "error"});
         }
     });
 };

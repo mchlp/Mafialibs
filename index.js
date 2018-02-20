@@ -145,6 +145,13 @@ app.post('/loginVerify', function (req, res) {
                 }
             });
             break;
+        case "verify":
+            auth.checkAuthorized(req, function (info) {
+                users.verifyUser(info["id"], req.body.password, function(result) {
+                    res.json({result: result["status"]});
+                });
+            });
+            break;
         default:
             res.status(200).send({result: 'redirect', url: '../login'});
             break;
@@ -187,6 +194,10 @@ app.post('/settingsUpdate', auth.isAuthorized, function (req, res) {
     settings.update(req.body, res);
 });
 
+app.post('/passwordUpdate', auth.isAuthorized, function(req, res) {
+    settings.updatePassword(req.body, res);
+});
+
 app.get('/home', function (req, res) {
     res.sendFile(__dirname + "/public/views/home.html");
 });
@@ -205,7 +216,7 @@ app.get('/register', function (req, res) {
 
 app.get('/login', function (req, res) {
     auth.checkAuthorized(req, function (authorized) {
-        if (authorized) {
+        if (authorized["status"] === "success") {
             res.redirect("../");
         } else {
             res.sendFile(__dirname + "/public/views/login.html");
@@ -228,6 +239,16 @@ app.get('/dashboard', auth.isAuthorized, function (req, res) {
 app.get('/settings', auth.isAuthorized, function (req, res) {
     settings.getData(res.locals.id, function (data) {
         res.send(hbsHandler.export("settings", data));
+    });
+});
+
+app.get('/changePassword', auth.isAuthorized, function(req, res) {
+    schema.User.findOne({user_id: res.locals.id}, function (err, found) {
+        if (found["source"] === "local") {
+            res.sendFile(__dirname + "/public/views/passwordChange.html")
+        } else {
+            res.redirect('../');
+        }
     });
 });
 

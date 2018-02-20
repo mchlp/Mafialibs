@@ -42,11 +42,11 @@ module.exports.getTokenInfo = function(c, cb) {
 module.exports.checkAuthorized = function(req, callback) {
     var token =  req.cookies["token"];
     if (token) {
-        jwt.verify(token, TOKEN_SECRET, function(err) {
-            callback(err == null);
+        jwt.verify(token, TOKEN_SECRET, function(err, dec) {
+            callback({status: "success", id: dec["id"], name: dec["name"]});
         });
     } else {
-        callback(false);
+        callback({status: "failed"});
     }
 };
 

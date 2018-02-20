@@ -34,12 +34,32 @@ module.exports.createUser = function (userData, callback) {
     })
 };
 
+module.exports.verifyUser = function(user_id, password, callback) {
+    schema.User.findOne({user_id: user_id}, function(err, found) {
+        if (err) {
+            callback({status: "error"});
+            throw err;
+        } else {
+            if (found) {
+                var salt = found["salt"];
+                var hash = bcrypt.hashSync(password, salt);
+                if (hash === found["password"]) {
+                    callback({status: "success"});
+                } else {
+                    callback({status: "invalid"});
+                }
+            } else {
+                callback({status: "error"});
+            }
+        }
+    })
+};
+
 module.exports.loginUser = function (userData, callback) {
     schema.User.findOne({username: userData["username"]}, function(err, found) {
         if (err) {
             callback({status:"error"});
             throw err;
-            return;
         } else {
             if (found) {
                 var password = userData["password"];
