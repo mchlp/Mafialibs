@@ -34,7 +34,8 @@
                     <div class="custom-file">
                         <input type="file" class="custom-file-input needs-custom-validation custom-validated"
                                accept="image/gif, image/jpeg, image/png" id="profile-pic-input">
-                        <label class="custom-file-label" id="profile-pic-label" for="profile-pic-input">Choose New Profile Picture</label>
+                        <label class="custom-file-label" id="profile-pic-label" for="profile-pic-input">Choose New
+                            Profile Picture</label>
                         <div class="invalid-feedback" id="image-feedback"></div>
                     </div>
                 </div>
@@ -52,6 +53,11 @@
                     </div>
                 {{/each}}
             </div>
+            {{#if local}}
+                <div class="mb-3">
+                    <button class="btn btn-info" type="button" id="change-password">Change Password</button>
+                </div>
+            {{/if}}
             <button class="btn btn-primary" type="submit" id="submit-button">Save Changes</button>
             <button class="btn btn-danger" onClick="window.location.reload()">Cancel Changes</button>
         </form>

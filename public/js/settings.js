@@ -49,6 +49,10 @@ $(document).ready(function() {
     updateUsername();
 
     $('#profile-pic-input').change(updateProfilePic);
+
+    $('#change-password').click(function() {
+        window.location.replace("../changePassword");
+    });
 });
 
 function updateProfilePic() {

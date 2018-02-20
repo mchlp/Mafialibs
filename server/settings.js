@@ -5,6 +5,7 @@ var jimp = require('jimp');
 module.exports.getData = function (id, callback) {
     schema.User.findOne({user_id: id}, function (err, curUser) {
         var userData = {
+            local: curUser.source === 'local',
             image: curUser.pic_url,
             fields: [
                 {
@@ -53,6 +54,13 @@ module.exports.getData = function (id, callback) {
                     id: "num-games",
                     label: "Number of Games Played",
                     value: curUser.game_count,
+                    validation: false,
+                    attributes: "readonly"
+                },
+                {
+                    id: "account-type",
+                    label: "Account Type",
+                    value: curUser.source.replace(/^[a-z]/, function (x) {return x.toUpperCase()}),
                     validation: false,
                     attributes: "readonly"
                 }

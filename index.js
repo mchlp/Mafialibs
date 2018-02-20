@@ -263,7 +263,7 @@ app.get('/handlebars/navbar', function (req, res) {
 });
 
 app.use(function (req, res) {
-    res.status(404).send("Page not found!");
+    res.status(404).sendFile(__dirname + "/public/views/404.html");
 });
 
 server.listen(3000, function () {
