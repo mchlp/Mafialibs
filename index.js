@@ -278,7 +278,7 @@ app.get('/handlebars/navbar', function (req, res) {
         data["baseurl"] = "../" + data["baseurl"];
     }
     auth.checkAuthorized(req, function (loggedin) {
-        data["loggedin"] = loggedin;
+        data["loggedin"] = loggedin["status"] === "success";
         res.send(hbsHandler.export("navBar", data));
     });
 });
