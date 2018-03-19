@@ -62,5 +62,5 @@ typings/
 
 # data files
 public/data/
-
+config.json
 devmode
