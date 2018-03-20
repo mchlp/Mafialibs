@@ -43,6 +43,9 @@ module.exports.checkAuthorized = function(req, callback) {
     var token =  req.cookies["token"];
     if (token) {
         jwt.verify(token, TOKEN_SECRET, function(err, dec) {
+            if (err) {
+                throw err;
+            }
             callback({status: "success", id: dec["id"], name: dec["name"]});
         });
     } else {

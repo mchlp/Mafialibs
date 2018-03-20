@@ -1,0 +1,19 @@
+{
+  "database": {
+    "username": "mafialibs-user",
+    "password": "mafialibs123",
+    "address": "127.0.0.1",
+    "port": "27017",
+    "name": "mafialibs-db"
+  },
+  "google": {
+    "client-id": "61123325910-bqfncmh15jgfg2o1millsnbd9k3floku.apps.googleusercontent.com"
+  },
+  "site": {
+    "base-urls": [
+      "https://mchlp.tk/mafialibs/",
+      "http://mchlp.tk/mafialibs/",
+      "http://localhost:3000/"
+    ]
+  }
+}

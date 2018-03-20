@@ -1,23 +1,21 @@
-const DB_USERNAME = "mafialibs-user";
-const DB_PASSWORD = "mafialibs123";
-const DB_ADDRESS = "127.0.0.1";
-const DB_PORT = "27017";
-const DB_DATABASE = "mafialibs-db";
-const CLIENT_ID = "61123325910-bqfncmh15jgfg2o1millsnbd9k3floku.apps.googleusercontent.com";
-const BASE_URLS = [
-    "https://mchlp.tk/mafialibs/",
-    "http://mchlp.tk/mafialibs/",
-    "http://localhost:3000/"
-];
+
+var fs = require('fs');
+var configFile = JSON.parse(fs.readFileSync('config.json', 'utf8'));
+
+const DB_USERNAME = configFile["database"]["username"];
+const DB_PASSWORD = configFile["database"]["password"];
+const DB_ADDRESS = configFile["database"]["address"];
+const DB_PORT = configFile["database"]["port"];
+const DB_DATABASE = configFile["database"]["name"];
+const CLIENT_ID = configFile["google"]["client-id"];
+const BASE_URLS = configFile["site"]["base-urls"];
 
 var express = require('express');
 var app = express();
 var server = require('http').createServer(app);
 var io = require("socket.io")(server);
-//var http = require('http').Server(app);
 var path = require('path');
 var session = require('cookie-session');
-var fs = require('fs');
 var format = require('util').format;
 var bodyParser = require('body-parser');
 var googleAuth = new require('google-auth-library');
